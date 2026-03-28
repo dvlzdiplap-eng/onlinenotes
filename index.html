@@ -2,102 +2,2705 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nepal Real-time Collab</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#1e1e2e">
+    <meta name="description" content="Professional Real-time Collaborative Note & Code Editor">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>CollabNote Pro - Real-time Collaborative Editor</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📝</text></svg>">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;700&family=Fira+Code:wght@300;400;500&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- External Libraries (CDN) -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
     <style>
-        body { margin: 0; font-family: sans-serif; display: flex; flex-direction: column; height: 100vh; }
-        header { background: #333; color: white; padding: 10px; display: flex; justify-content: space-between; }
-        .main-container { display: flex; flex: 1; overflow: hidden; }
-        
-        /* Split Screen */
-        .editor-section, .preview-section { flex: 1; display: flex; flex-direction: column; border: 1px solid #ccc; }
-        textarea { flex: 1; padding: 15px; font-family: 'Courier New', monospace; font-size: 16px; border: none; outline: none; resize: none; }
-        iframe { flex: 1; border: none; background: white; }
-        
-        .toolbar { background: #f4f4f4; padding: 5px; border-bottom: 1px solid #ddd; }
-        button { cursor: pointer; background: #007bff; color: white; border: none; padding: 5px 10px; border-radius: 3px; }
+        /* ============================================
+           CSS VARIABLES & ROOT STYLES
+        ============================================ */
+        :root {
+            --bg-primary: #0d1117;
+            --bg-secondary: #161b22;
+            --bg-tertiary: #21262d;
+            --bg-hover: #30363d;
+            --text-primary: #e6edf3;
+            --text-secondary: #8b949e;
+            --text-muted: #6e7681;
+            --accent-primary: #58a6ff;
+            --accent-secondary: #3fb950;
+            --accent-warning: #d29922;
+            --accent-danger: #f85149;
+            --accent-purple: #a371f7;
+            --border-color: #30363d;
+            --shadow-sm: 0 1px 2px rgba(0,0,0,0.3);
+            --shadow-md: 0 4px 12px rgba(0,0,0,0.4);
+            --shadow-lg: 0 8px 24px rgba(0,0,0,0.5);
+            --radius-sm: 6px;
+            --radius-md: 10px;
+            --radius-lg: 16px;
+            --transition-fast: 0.15s ease;
+            --transition-normal: 0.25s ease;
+            --font-mono: 'Fira Code', 'Consolas', monospace;
+            --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            --font-handwriting: 'Dancing Script', cursive;
+        }
+
+        /* ============================================
+           RESET & BASE STYLES
+        ============================================ */
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            font-size: 16px;
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: var(--font-sans);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.6;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* ============================================
+           CUSTOM SCROLLBAR
+        ============================================ */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-secondary);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--bg-hover);
+            border-radius: 4px;
+            transition: background var(--transition-fast);
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-muted);
+        }
+
+        /* ============================================
+           HEADER STYLES
+        ============================================ */
+        .header {
+            background: linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-primary) 100%);
+            border-bottom: 1px solid var(--border-color);
+            padding: 12px 20px;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            backdrop-filter: blur(20px);
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            max-width: 100%;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo {
+            font-size: 1.75rem;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-5px); }
+        }
+
+        .app-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .room-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 16px;
+            background: var(--bg-tertiary);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-color);
+        }
+
+        .room-badge {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .room-badge .room-name {
+            color: var(--accent-primary);
+            font-weight: 600;
+        }
+
+        .user-badge {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.875rem;
+        }
+
+        .user-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent-purple), var(--accent-primary));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: white;
+            text-transform: uppercase;
+        }
+
+        .online-indicator {
+            width: 10px;
+            height: 10px;
+            background: var(--accent-secondary);
+            border-radius: 50%;
+            animation: pulse 2s ease-in-out infinite;
+            box-shadow: 0 0 10px var(--accent-secondary);
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.7; transform: scale(1.1); }
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        /* ============================================
+           BUTTON STYLES
+        ============================================ */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 10px 18px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            font-family: var(--font-sans);
+            border: 1px solid transparent;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            white-space: nowrap;
+            text-decoration: none;
+        }
+
+        .btn:active {
+            transform: scale(0.97);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent-primary), #1f6feb);
+            color: white;
+            border-color: var(--accent-primary);
+            box-shadow: var(--shadow-sm), 0 0 20px rgba(88, 166, 255, 0.2);
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #79b8ff, var(--accent-primary));
+            box-shadow: var(--shadow-md), 0 0 30px rgba(88, 166, 255, 0.3);
+        }
+
+        .btn-secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border-color: var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-hover);
+            border-color: var(--text-muted);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, var(--accent-secondary), #238636);
+            color: white;
+            border-color: var(--accent-secondary);
+        }
+
+        .btn-success:hover {
+            background: linear-gradient(135deg, #56d364, var(--accent-secondary));
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, var(--accent-danger), #da3633);
+            color: white;
+            border-color: var(--accent-danger);
+        }
+
+        .btn-danger:hover {
+            background: linear-gradient(135deg, #ff7b72, var(--accent-danger));
+        }
+
+        .btn-ghost {
+            background: transparent;
+            color: var(--text-secondary);
+            border-color: transparent;
+        }
+
+        .btn-ghost:hover {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        .btn-icon {
+            width: 40px;
+            height: 40px;
+            padding: 0;
+            border-radius: var(--radius-sm);
+        }
+
+        .btn-copy {
+            min-width: 120px;
+            background: linear-gradient(135deg, #238636, var(--accent-secondary));
+        }
+
+        .btn-copy.copied {
+            background: linear-gradient(135deg, var(--accent-secondary), #56d364) !important;
+            animation: successPulse 0.3s ease;
+        }
+
+        @keyframes successPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        /* ============================================
+           MAIN CONTAINER & SPLIT VIEW
+        ============================================ */
+        .main-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            height: calc(100vh - 70px);
+            gap: 1px;
+            background: var(--border-color);
+        }
+
+        @media (max-width: 900px) {
+            .main-container {
+                grid-template-columns: 1fr;
+                grid-template-rows: 1fr 1fr;
+            }
+        }
+
+        .panel {
+            display: flex;
+            flex-direction: column;
+            background: var(--bg-primary);
+            overflow: hidden;
+        }
+
+        .panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+            min-height: 50px;
+        }
+
+        .panel-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        .panel-title-icon {
+            font-size: 1.1rem;
+        }
+
+        .panel-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* ============================================
+           CODE EDITOR STYLES
+        ============================================ */
+        .editor-wrapper {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #codeEditor {
+            width: 100%;
+            height: 100%;
+            padding: 20px;
+            font-family: var(--font-mono);
+            font-size: 14px;
+            line-height: 1.7;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            border: none;
+            outline: none;
+            resize: none;
+            tab-size: 4;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        #codeEditor::placeholder {
+            color: var(--text-muted);
+        }
+
+        #codeEditor:focus {
+            box-shadow: inset 0 0 0 2px rgba(88, 166, 255, 0.2);
+        }
+
+        /* Line numbers */
+        .line-numbers {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 50px;
+            height: 100%;
+            padding: 20px 10px;
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border-color);
+            font-family: var(--font-mono);
+            font-size: 12px;
+            line-height: 1.7;
+            color: var(--text-muted);
+            text-align: right;
+            user-select: none;
+            overflow: hidden;
+        }
+
+        .editor-with-lines {
+            padding-left: 60px !important;
+        }
+
+        /* ============================================
+           PREVIEW PANEL STYLES
+        ============================================ */
+        .preview-wrapper {
+            flex: 1;
+            overflow: auto;
+            background: #ffffff;
+        }
+
+        #preview {
+            min-height: 100%;
+            padding: 24px;
+            font-family: var(--font-sans);
+            font-size: 16px;
+            line-height: 1.8;
+            color: #1f2937;
+            word-wrap: break-word;
+        }
+
+        #preview.handwriting-font {
+            font-family: var(--font-handwriting);
+            font-size: 20px;
+            line-height: 2;
+        }
+
+        #preview img {
+            max-width: 100%;
+            height: auto;
+            border-radius: var(--radius-sm);
+            margin: 12px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        #preview h1, #preview h2, #preview h3 {
+            color: #111827;
+            margin: 1em 0 0.5em;
+        }
+
+        #preview code {
+            background: #f3f4f6;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: var(--font-mono);
+            font-size: 0.9em;
+        }
+
+        #preview pre {
+            background: #1f2937;
+            color: #e5e7eb;
+            padding: 16px;
+            border-radius: var(--radius-sm);
+            overflow-x: auto;
+        }
+
+        #preview pre code {
+            background: transparent;
+            padding: 0;
+        }
+
+        /* ============================================
+           MODAL STYLES
+        ============================================ */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all var(--transition-normal);
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            width: 90%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow: hidden;
+            transform: scale(0.9) translateY(20px);
+            transition: transform var(--transition-normal);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .modal-overlay.active .modal {
+            transform: scale(1) translateY(0);
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .modal-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .modal-close {
+            width: 36px;
+            height: 36px;
+            border: none;
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            transition: all var(--transition-fast);
+        }
+
+        .modal-close:hover {
+            background: var(--accent-danger);
+            color: white;
+        }
+
+        .modal-body {
+            padding: 24px;
+        }
+
+        .modal-footer {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 12px;
+            padding: 16px 24px;
+            border-top: 1px solid var(--border-color);
+            background: var(--bg-tertiary);
+        }
+
+        /* ============================================
+           FORM STYLES
+        ============================================ */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            font-size: 1rem;
+            font-family: var(--font-sans);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            outline: none;
+            transition: all var(--transition-fast);
+        }
+
+        .form-input:focus {
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.2);
+        }
+
+        .form-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .form-hint {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 6px;
+        }
+
+        /* ============================================
+           SKETCHPAD MODAL
+        ============================================ */
+        .sketchpad-modal .modal {
+            max-width: 700px;
+        }
+
+        .sketchpad-container {
+            position: relative;
+        }
+
+        #sketchpad {
+            width: 100%;
+            height: 300px;
+            background: #ffffff;
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            cursor: crosshair;
+            touch-action: none;
+        }
+
+        .sketchpad-controls {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 16px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .brush-size-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brush-size-label {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .brush-size-slider {
+            width: 100px;
+            height: 6px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: var(--bg-tertiary);
+            border-radius: 3px;
+            outline: none;
+        }
+
+        .brush-size-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            background: var(--accent-primary);
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .ocr-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .ocr-spinner {
+            width: 16px;
+            height: 16px;
+            border: 2px solid var(--border-color);
+            border-top-color: var(--accent-primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* ============================================
+           FLOATING ACTION BUTTON (FAB)
+        ============================================ */
+        .fab-container {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            z-index: 1000;
+        }
+
+        .fab {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            box-shadow: var(--shadow-lg);
+            transition: all var(--transition-normal);
+        }
+
+        .fab:hover {
+            transform: scale(1.1);
+        }
+
+        .fab:active {
+            transform: scale(0.95);
+        }
+
+        .fab-primary {
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-purple));
+            color: white;
+        }
+
+        .fab-secondary {
+            width: 48px;
+            height: 48px;
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            font-size: 1.25rem;
+        }
+
+        .fab-menu {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(20px);
+            transition: all var(--transition-normal);
+        }
+
+        .fab-container:hover .fab-menu,
+        .fab-container.active .fab-menu {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .fab-tooltip {
+            position: absolute;
+            right: 65px;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            padding: 6px 12px;
+            border-radius: var(--radius-sm);
+            font-size: 0.75rem;
+            font-weight: 600;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: all var(--transition-fast);
+            border: 1px solid var(--border-color);
+        }
+
+        .fab-secondary:hover .fab-tooltip {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* ============================================
+           STATUS BAR
+        ============================================ */
+        .status-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 20px;
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border-color);
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .status-left, .status-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .sync-status {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .sync-status.synced {
+            color: var(--accent-secondary);
+        }
+
+        .sync-status.syncing {
+            color: var(--accent-warning);
+        }
+
+        .sync-status.error {
+            color: var(--accent-danger);
+        }
+
+        /* ============================================
+           TOAST NOTIFICATIONS
+        ============================================ */
+        .toast-container {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 10001;
+            pointer-events: none;
+        }
+
+        .toast {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 20px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-lg);
+            font-size: 0.875rem;
+            transform: translateX(120%);
+            transition: transform var(--transition-normal);
+            pointer-events: auto;
+            max-width: 350px;
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        .toast-icon {
+            font-size: 1.25rem;
+        }
+
+        .toast-message {
+            flex: 1;
+        }
+
+        .toast.success {
+            border-left: 4px solid var(--accent-secondary);
+        }
+
+        .toast.error {
+            border-left: 4px solid var(--accent-danger);
+        }
+
+        .toast.info {
+            border-left: 4px solid var(--accent-primary);
+        }
+
+        .toast.warning {
+            border-left: 4px solid var(--accent-warning);
+        }
+
+        /* ============================================
+           COLLABORATOR INDICATOR
+        ============================================ */
+        .collaborators-bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: var(--bg-tertiary);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .collaborators-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .collaborators-list {
+            display: flex;
+            align-items: center;
+        }
+
+        .collaborator-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-purple));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: white;
+            text-transform: uppercase;
+            margin-left: -8px;
+            border: 2px solid var(--bg-tertiary);
+            position: relative;
+        }
+
+        .collaborator-avatar:first-child {
+            margin-left: 0;
+        }
+
+        .collaborator-avatar::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            right: -2px;
+            width: 10px;
+            height: 10px;
+            background: var(--accent-secondary);
+            border-radius: 50%;
+            border: 2px solid var(--bg-tertiary);
+        }
+
+        /* ============================================
+           TYPING INDICATOR
+        ============================================ */
+        .typing-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: var(--bg-secondary);
+            border-radius: var(--radius-sm);
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            position: absolute;
+            bottom: 60px;
+            left: 20px;
+            opacity: 0;
+            visibility: hidden;
+            transition: all var(--transition-fast);
+        }
+
+        .typing-indicator.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .typing-dots {
+            display: flex;
+            gap: 3px;
+        }
+
+        .typing-dots span {
+            width: 6px;
+            height: 6px;
+            background: var(--accent-primary);
+            border-radius: 50%;
+            animation: typingDot 1.4s infinite;
+        }
+
+        .typing-dots span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-dots span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typingDot {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-6px); }
+        }
+
+        /* ============================================
+           TOGGLE SWITCH
+        ============================================ */
+        .toggle-switch {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .toggle-input {
+            position: absolute;
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            width: 44px;
+            height: 24px;
+            background: var(--bg-tertiary);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            position: relative;
+            border: 1px solid var(--border-color);
+        }
+
+        .toggle-slider::before {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 18px;
+            height: 18px;
+            background: var(--text-primary);
+            border-radius: 50%;
+            transition: all var(--transition-fast);
+        }
+
+        .toggle-input:checked + .toggle-slider {
+            background: var(--accent-primary);
+            border-color: var(--accent-primary);
+        }
+
+        .toggle-input:checked + .toggle-slider::before {
+            transform: translateX(20px);
+        }
+
+        .toggle-label {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        /* ============================================
+           EMPTY STATE
+        ============================================ */
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            text-align: center;
+            padding: 40px;
+            color: var(--text-muted);
+        }
+
+        .empty-state-icon {
+            font-size: 4rem;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        .empty-state-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--text-secondary);
+        }
+
+        .empty-state-desc {
+            font-size: 0.875rem;
+            max-width: 300px;
+        }
+
+        /* ============================================
+           LOADING SCREEN
+        ============================================ */
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg-primary);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 100000;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+        }
+
+        .loading-screen.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .loading-logo {
+            font-size: 4rem;
+            margin-bottom: 24px;
+            animation: bounce 1s ease-in-out infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--bg-tertiary);
+            border-top-color: var(--accent-primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        .loading-text {
+            margin-top: 16px;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+
+        /* ============================================
+           RESPONSIVE ADJUSTMENTS
+        ============================================ */
+        @media (max-width: 768px) {
+            .header-content {
+                padding: 8px 12px;
+            }
+
+            .room-info {
+                display: none;
+            }
+
+            .header-actions {
+                flex-wrap: nowrap;
+                overflow-x: auto;
+                padding-bottom: 4px;
+            }
+
+            .btn {
+                padding: 8px 12px;
+                font-size: 0.8rem;
+            }
+
+            .fab-container {
+                bottom: 16px;
+                right: 16px;
+            }
+
+            .modal {
+                width: 95%;
+                max-height: 85vh;
+            }
+
+            .status-bar {
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .app-title {
+                display: none;
+            }
+
+            .btn span:not(.btn-icon span) {
+                display: none;
+            }
+
+            .btn {
+                padding: 8px;
+            }
+        }
+
+        /* ============================================
+           PRINT STYLES
+        ============================================ */
+        @media print {
+            .header,
+            .status-bar,
+            .fab-container,
+            .editor-panel,
+            .panel-header {
+                display: none !important;
+            }
+
+            .main-container {
+                grid-template-columns: 1fr;
+                height: auto;
+            }
+
+            .preview-wrapper {
+                height: auto;
+                overflow: visible;
+            }
+
+            #preview {
+                padding: 0;
+            }
+        }
+
+        /* ============================================
+           ACCESSIBILITY
+        ============================================ */
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
+        :focus-visible {
+            outline: 2px solid var(--accent-primary);
+            outline-offset: 2px;
+        }
+
+        /* ============================================
+           PROGRESS BAR
+        ============================================ */
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: var(--bg-tertiary);
+            border-radius: 2px;
+            overflow: hidden;
+            margin-top: 12px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-primary), var(--accent-purple));
+            border-radius: 2px;
+            transition: width 0.3s ease;
+        }
     </style>
 </head>
 <body>
+    <!-- Loading Screen -->
+    <div class="loading-screen" id="loadingScreen">
+        <div class="loading-logo">📝</div>
+        <div class="loading-spinner"></div>
+        <p class="loading-text">Initializing CollabNote Pro...</p>
+    </div>
 
-<header>
-    <div id="user-info">Welcome: <span id="display-name">...</span></div>
-    <div>Room: <strong id="room-id">Global-Room</strong></div>
-</header>
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
 
-<div class="main-container">
-    <!-- Left Side: Code Editor -->
-    <div class="editor-section">
-        <div class="toolbar">
-            <span>CODE EDITOR (HTML/CSS)</span>
-            <button onclick="insertMedia('image')">+ Image</button>
-            <button onclick="insertMedia('video')">+ Video</button>
+    <!-- Main Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="logo-section">
+                <span class="logo">📝</span>
+                <h1 class="app-title">CollabNote Pro</h1>
+            </div>
+
+            <div class="room-info" id="roomInfo">
+                <div class="room-badge">
+                    <span>🏠</span>
+                    <span>Room:</span>
+                    <span class="room-name" id="roomNameDisplay">-</span>
+                </div>
+                <div class="user-badge">
+                    <div class="user-avatar" id="userAvatar">?</div>
+                    <span id="userNameDisplay">Guest</span>
+                    <div class="online-indicator"></div>
+                </div>
+            </div>
+
+            <div class="header-actions">
+                <button class="btn btn-copy btn-success" id="copyAllBtn" title="Copy all content">
+                    <span>📋</span>
+                    <span>Copy All</span>
+                </button>
+                
+                <button class="btn btn-secondary" id="exportPdfBtn" title="Export as PDF">
+                    <span>📄</span>
+                    <span>Export PDF</span>
+                </button>
+
+                <label class="toggle-switch" title="Toggle handwriting font">
+                    <input type="checkbox" class="toggle-input" id="handwritingToggle">
+                    <span class="toggle-slider"></span>
+                    <span class="toggle-label">✍️ Handwriting</span>
+                </label>
+
+              
+            </div>
         </div>
-        <textarea id="code-input" placeholder="Start typing HTML/CSS code here..."></textarea>
+    </header>
+
+    <!-- Collaborators Bar -->
+    <div class="collaborators-bar" id="collaboratorsBar">
+        <span class="collaborators-label">👥 Online:</span>
+        <div class="collaborators-list" id="collaboratorsList">
+            <!-- Dynamically populated -->
+        </div>
     </div>
 
-    <!-- Right Side: Live Preview -->
-    <div class="preview-section">
-        <div class="toolbar">LIVE OUTPUT</div>
-        <iframe id="output-window"></iframe>
+    <!-- Main Container -->
+    <main class="main-container">
+        <!-- Code Editor Panel -->
+        <section class="panel editor-panel">
+            <div class="panel-header">
+                <div class="panel-title">
+                    <span class="panel-title-icon">💻</span>
+                    <span>Code Editor</span>
+                </div>
+                <div class="panel-actions">
+                    <button class="btn btn-ghost btn-icon" id="clearEditorBtn" title="Clear editor">
+                        🗑️
+                    </button>
+                    <button class="btn btn-ghost btn-icon" id="formatCodeBtn" title="Format code">
+                        ✨
+                    </button>
+                </div>
+            </div>
+            <div class="editor-wrapper">
+                <div class="line-numbers" id="lineNumbers">1</div>
+                <textarea 
+                    id="codeEditor" 
+                    class="editor-with-lines"
+                    placeholder="Start typing your code here...&#10;&#10;📋 Paste images directly (Ctrl+V)&#10;🔄 Changes sync in real-time&#10;💡 Tip: Use HTML/CSS for rich preview"
+                    spellcheck="false"
+                    autocomplete="off"
+                    autocorrect="off"
+                    autocapitalize="off"
+                ></textarea>
+            </div>
+            <div class="typing-indicator" id="typingIndicator">
+                <div class="typing-dots">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+                <span id="typingUser">Someone</span> is typing...
+            </div>
+        </section>
+
+        <!-- Preview Panel -->
+        <section class="panel preview-panel">
+            <div class="panel-header">
+                <div class="panel-title">
+                    <span class="panel-title-icon">👁️</span>
+                    <span>Live Preview</span>
+                </div>
+                <div class="panel-actions">
+                    <button class="btn btn-ghost btn-icon" id="refreshPreviewBtn" title="Refresh preview">
+                        🔄
+                    </button>
+                    <button class="btn btn-ghost btn-icon" id="fullscreenPreviewBtn" title="Fullscreen preview">
+                        ⛶
+                    </button>
+                </div>
+            </div>
+            <div class="preview-wrapper">
+                <div id="preview">
+                    <div class="empty-state">
+                        <div class="empty-state-icon">✨</div>
+                        <h3 class="empty-state-title">Ready to Create</h3>
+                        <p class="empty-state-desc">Start typing in the editor to see your live preview here. HTML & CSS will be rendered automatically.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Status Bar -->
+    <footer class="status-bar">
+        <div class="status-left">
+            <div class="status-item">
+                <span>📝</span>
+                <span>Characters: <strong id="charCount">0</strong></span>
+            </div>
+            <div class="status-item">
+                <span>📄</span>
+                <span>Lines: <strong id="lineCount">1</strong></span>
+            </div>
+            <div class="status-item">
+                <span>🖼️</span>
+                <span>Images: <strong id="imageCount">0</strong></span>
+            </div>
+        </div>
+        <div class="status-right">
+            <div class="sync-status synced" id="syncStatus">
+                <span>✅</span>
+                <span>Synced</span>
+            </div>
+            <div class="status-item">
+                <span id="connectionStatus">🌐 Online</span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Floating Action Buttons -->
+    <div class="fab-container" id="fabContainer">
+        <div class="fab-menu">
+            <button class="fab fab-secondary" id="sketchpadFab" title="Open Sketchpad">
+                ✏️
+                <span class="fab-tooltip">Sketchpad + OCR</span>
+            </button>
+            <button class="fab fab-secondary" id="uploadImageFab" title="Upload Image">
+                🖼️
+                <span class="fab-tooltip">Upload Image</span>
+            </button>
+            <button class="fab fab-secondary" id="templateFab" title="Templates">
+                📋
+                <span class="fab-tooltip">Templates</span>
+            </button>
+        </div>
+        <button class="fab fab-primary" id="mainFab" title="Quick Actions">
+            ⚡
+        </button>
     </div>
-</div>
 
-<script>
-    // 1. SETUP SUPABASE (You get these from supabase.com for free)
-    const SUPABASE_URL = 'https://ycnmgtdxljncunnktbef.supabase.co';
-    const SUPABASE_KEY = 'sb_publishable_ic4z42pOnv3_DNfgt4GvJg_d-E1CPVV';
-    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    <!-- Hidden File Input -->
+    <input type="file" id="imageUpload" accept="image/*" style="display: none;">
 
-    const codeInput = document.getElementById('code-input');
-    const outputWindow = document.getElementById('output-window');
-    const nameDisplay = document.getElementById('display-name');
+    <!-- Room Setup Modal -->
+    <div class="modal-overlay" id="roomModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">
+                    <span>🏠</span>
+                    Join a Room
+                </h2>
+            </div>
+            <div class="modal-body">
+                <p style="color: var(--text-secondary); margin-bottom: 20px;">
+                    Enter a room name to collaborate with others in real-time. Share the room name with your collaborators!
+                </p>
+                <div class="form-group">
+                    <label class="form-label" for="roomNameInput">Room Name</label>
+                    <input 
+                        type="text" 
+                        class="form-input" 
+                        id="roomNameInput" 
+                        placeholder="e.g., NepalGroup, ProjectAlpha"
+                        autocomplete="off"
+                    >
+                    <p class="form-hint">Letters, numbers, and underscores only</p>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="userNameInput">Your Name</label>
+                    <input 
+                        type="text" 
+                        class="form-input" 
+                        id="userNameInput" 
+                        placeholder="e.g., Arun, Sita"
+                        autocomplete="off"
+                    >
+                    <p class="form-hint">This will be shown to other collaborators</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" id="joinRoomBtn">
+                    <span>🚀</span>
+                    <span>Join Room</span>
+                </button>
+            </div>
+        </div>
+    </div>
 
-    // 2. ASK FOR NAME (Stored in LocalStorage)
-    let myName = localStorage.getItem('userName') || prompt("Enter your name:");
-    localStorage.setItem('userName', myName);
-    nameDisplay.innerText = myName;
+    <!-- Sketchpad Modal -->
+    <div class="modal-overlay sketchpad-modal" id="sketchpadModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">
+                    <span>✏️</span>
+                    Sketchpad + OCR
+                </h2>
+                <button class="modal-close" id="closeSketchpad">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="sketchpad-container">
+                    <canvas id="sketchpad" width="650" height="300"></canvas>
+                    <div class="sketchpad-controls">
+                        <div class="brush-size-group">
+                            <span class="brush-size-label">Brush:</span>
+                            <input type="range" class="brush-size-slider" id="brushSize" min="1" max="20" value="3">
+                            <input type="color" id="brushColor" value="#000000" style="width: 32px; height: 32px; border: none; cursor: pointer;">
+                        </div>
+                        <div class="ocr-status" id="ocrStatus" style="display: none;">
+                            <div class="ocr-spinner"></div>
+                            <span>Recognizing text...</span>
+                        </div>
+                    </div>
+                    <div class="progress-bar" id="ocrProgress" style="display: none;">
+                        <div class="progress-fill" id="ocrProgressFill" style="width: 0%;"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="clearSketchpad">
+                    <span>🗑️</span>
+                    <span>Clear</span>
+                </button>
+                <button class="btn btn-primary" id="recognizeText">
+                    <span>🔍</span>
+                    <span>Recognize Text (OCR)</span>
+                </button>
+                <button class="btn btn-success" id="insertDrawing">
+                    <span>🖼️</span>
+                    <span>Insert as Image</span>
+                </button>
+            </div>
+        </div>
+    </div>
 
-    // 3. REAL-TIME SYNC LOGIC
-    const channel = supabase.channel('room-1')
-    .on('broadcast', { event: 'typing' }, (payload) => {
-        // When friend types, update my screen
-        if (payload.payload.sender !== myName) {
-            codeInput.value = payload.payload.text;
-            updatePreview();
+  
+
+    <!-- Templates Modal -->
+    <div class="modal-overlay" id="templatesModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">
+                    <span>📋</span>
+                    Templates
+                </h2>
+                <button class="modal-close" id="closeTemplates">×</button>
+            </div>
+            <div class="modal-body" style="max-height: 400px; overflow-y: auto;">
+                <div style="display: grid; gap: 12px;">
+                    <button class="btn btn-secondary" data-template="html-basic" style="justify-content: flex-start; padding: 16px;">
+                        <span>🌐</span>
+                        <span>Basic HTML Page</span>
+                    </button>
+                    <button class="btn btn-secondary" data-template="letter" style="justify-content: flex-start; padding: 16px;">
+                        <span>✉️</span>
+                        <span>Formal Letter</span>
+                    </button>
+                    <button class="btn btn-secondary" data-template="meeting-notes" style="justify-content: flex-start; padding: 16px;">
+                        <span>📝</span>
+                        <span>Meeting Notes</span>
+                    </button>
+                    <button class="btn btn-secondary" data-template="todo-list" style="justify-content: flex-start; padding: 16px;">
+                        <span>✅</span>
+                        <span>To-Do List</span>
+                    </button>
+                    <button class="btn btn-secondary" data-template="code-snippet" style="justify-content: flex-start; padding: 16px;">
+                        <span>💻</span>
+                        <span>Code Snippet</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // COLLABNOTE PRO - MAIN APPLICATION
+        // ============================================
+
+        (function() {
+            'use strict';
+
+            // ----------------------------------------
+            // CONFIGURATION & STATE
+            // ----------------------------------------
+            // ----------------------------------------
+// CONFIGURATION & STATE
+// ----------------------------------------
+const CONFIG = {
+    // PASTE YOUR ACTUAL SUPABASE URL AND KEY BELOW
+    SUPABASE_URL: 'https://ycnmgtdxljncunnktbef.supabase.co', 
+    SUPABASE_KEY: 'sb_publishable_ic4z42pOnv3_DNfgt4GvJg_d-E1CPVV', 
+    TABLE_NAME: 'shared_notes',
+    SYNC_DEBOUNCE: 300,
+    AUTO_SAVE_INTERVAL: 2000,
+    TYPING_TIMEOUT: 2000
+};
+            const STATE = {
+                roomName: null,
+                userName: null,
+                supabase: null,
+                subscription: null,
+                lastContent: '',
+                isTyping: false,
+                typingTimeout: null,
+                syncTimeout: null,
+                collaborators: new Map(),
+                isOnline: navigator.onLine
+            };
+
+            // ----------------------------------------
+            // DOM ELEMENTS
+            // ----------------------------------------
+            const DOM = {
+                loadingScreen: document.getElementById('loadingScreen'),
+                codeEditor: document.getElementById('codeEditor'),
+                preview: document.getElementById('preview'),
+                lineNumbers: document.getElementById('lineNumbers'),
+                copyAllBtn: document.getElementById('copyAllBtn'),
+                exportPdfBtn: document.getElementById('exportPdfBtn'),
+                handwritingToggle: document.getElementById('handwritingToggle'),
+                charCount: document.getElementById('charCount'),
+                lineCount: document.getElementById('lineCount'),
+                imageCount: document.getElementById('imageCount'),
+                syncStatus: document.getElementById('syncStatus'),
+                connectionStatus: document.getElementById('connectionStatus'),
+                roomNameDisplay: document.getElementById('roomNameDisplay'),
+                userNameDisplay: document.getElementById('userNameDisplay'),
+                userAvatar: document.getElementById('userAvatar'),
+                collaboratorsList: document.getElementById('collaboratorsList'),
+                typingIndicator: document.getElementById('typingIndicator'),
+                typingUser: document.getElementById('typingUser'),
+                toastContainer: document.getElementById('toastContainer'),
+                // Modals
+                roomModal: document.getElementById('roomModal'),
+                roomNameInput: document.getElementById('roomNameInput'),
+                userNameInput: document.getElementById('userNameInput'),
+                joinRoomBtn: document.getElementById('joinRoomBtn'),
+                sketchpadModal: document.getElementById('sketchpadModal'),
+                sketchpad: document.getElementById('sketchpad'),
+                settingsModal: document.getElementById('settingsModal'),
+                templatesModal: document.getElementById('templatesModal'),
+                // Buttons
+                mainFab: document.getElementById('mainFab'),
+                sketchpadFab: document.getElementById('sketchpadFab'),
+                uploadImageFab: document.getElementById('uploadImageFab'),
+                templateFab: document.getElementById('templateFab'),
+                imageUpload: document.getElementById('imageUpload'),
+                clearEditorBtn: document.getElementById('clearEditorBtn'),
+                settingsBtn: document.getElementById('settingsBtn'),
+                // Sketchpad
+                brushSize: document.getElementById('brushSize'),
+                brushColor: document.getElementById('brushColor'),
+                clearSketchpad: document.getElementById('clearSketchpad'),
+                recognizeText: document.getElementById('recognizeText'),
+                insertDrawing: document.getElementById('insertDrawing'),
+                ocrStatus: document.getElementById('ocrStatus'),
+                ocrProgress: document.getElementById('ocrProgress'),
+                ocrProgressFill: document.getElementById('ocrProgressFill'),
+                // Settings
+                supabaseUrl: document.getElementById('supabaseUrl'),
+                supabaseKey: document.getElementById('supabaseKey'),
+                saveSettings: document.getElementById('saveSettings'),
+                lineNumbersToggle: document.getElementById('lineNumbersToggle')
+            };
+
+            // ----------------------------------------
+            // TEMPLATES
+            // ----------------------------------------
+            const TEMPLATES = {
+                'html-basic': `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
         }
-    })
-    .subscribe();
+        h1 { color: #333; }
+    </style>
+</head>
+<body>
+    <h1>Welcome to My Page</h1>
+    <p>This is a basic HTML template.</p>
+</body>
+</html>`,
+                'letter': `<div style="font-family: 'Dancing Script', cursive; max-width: 600px; margin: 0 auto; padding: 40px; line-height: 2;">
+    <p style="text-align: right;">
+        Your Address<br>
+        City, State ZIP<br>
+        Date: ${new Date().toLocaleDateString()}
+    </p>
+    
+    <p style="margin-top: 40px;">
+        Recipient's Name<br>
+        Recipient's Address<br>
+        City, State ZIP
+    </p>
+    
+    <p style="margin-top: 30px;">Dear Sir/Madam,</p>
+    
+    <p style="text-indent: 40px;">
+        I am writing to you regarding...
+    </p>
+    
+    <p style="text-indent: 40px;">
+        [Body of the letter goes here]
+    </p>
+    
+    <p style="margin-top: 30px;">
+        Thank you for your time and consideration.
+    </p>
+    
+    <p style="margin-top: 40px;">
+        Sincerely,<br><br><br>
+        Your Name
+    </p>
+</div>`,
+                'meeting-notes': `<div style="max-width: 700px; margin: 0 auto; padding: 20px;">
+    <h1>📝 Meeting Notes</h1>
+    <p><strong>Date:</strong> ${new Date().toLocaleDateString()}</p>
+    <p><strong>Attendees:</strong> [Names]</p>
+    <p><strong>Topic:</strong> [Meeting Topic]</p>
+    
+    <hr>
+    
+    <h2>🎯 Agenda</h2>
+    <ol>
+        <li>Item 1</li>
+        <li>Item 2</li>
+        <li>Item 3</li>
+    </ol>
+    
+    <h2>📋 Discussion Points</h2>
+    <ul>
+        <li>Point 1</li>
+        <li>Point 2</li>
+    </ul>
+    
+    <h2>✅ Action Items</h2>
+    <ul>
+        <li>[ ] Task 1 - @Person - Due: Date</li>
+        <li>[ ] Task 2 - @Person - Due: Date</li>
+    </ul>
+    
+    <h2>📅 Next Meeting</h2>
+    <p>Date: [TBD]</p>
+</div>`,
+                'todo-list': `<div style="max-width: 500px; margin: 0 auto; padding: 20px;">
+    <h1>✅ To-Do List</h1>
+    <p style="color: #666;">Date: ${new Date().toLocaleDateString()}</p>
+    
+    <h2>🔴 High Priority</h2>
+    <ul style="list-style: none; padding: 0;">
+        <li>☐ Task 1</li>
+        <li>☐ Task 2</li>
+    </ul>
+    
+    <h2>🟡 Medium Priority</h2>
+    <ul style="list-style: none; padding: 0;">
+        <li>☐ Task 3</li>
+        <li>☐ Task 4</li>
+    </ul>
+    
+    <h2>🟢 Low Priority</h2>
+    <ul style="list-style: none; padding: 0;">
+        <li>☐ Task 5</li>
+        <li>☐ Task 6</li>
+    </ul>
+    
+    <hr>
+    <p><strong>Completed:</strong></p>
+    <ul style="list-style: none; padding: 0; color: #888;">
+        <li>☑ Completed task</li>
+    </ul>
+</div>`,
+                'code-snippet': `<h2>💻 Code Snippet</h2>
 
-    codeInput.addEventListener('input', () => {
-        updatePreview();
-        // Send typing data to friend
-        channel.send({
-            type: 'broadcast',
-            event: 'typing',
-            payload: { text: codeInput.value, sender: myName }
-        });
+<pre><code>// JavaScript Example
+function greet(name) {
+    return \`Hello, \${name}!\`;
+}
+
+console.log(greet('World'));
+</code></pre>
+
+<h3>Usage Notes:</h3>
+<ul>
+    <li>This function takes a name parameter</li>
+    <li>Returns a greeting string</li>
+</ul>`
+            };
+
+            // ----------------------------------------
+            // UTILITY FUNCTIONS
+            // ----------------------------------------
+            function showToast(message, type = 'info', duration = 3000) {
+                const icons = {
+                    success: '✅',
+                    error: '❌',
+                    info: 'ℹ️',
+                    warning: '⚠️'
+                };
+                
+                const toast = document.createElement('div');
+                toast.className = `toast ${type}`;
+                toast.innerHTML = `
+                    <span class="toast-icon">${icons[type]}</span>
+                    <span class="toast-message">${message}</span>
+                `;
+                
+                DOM.toastContainer.appendChild(toast);
+                
+                requestAnimationFrame(() => {
+                    toast.classList.add('show');
+                });
+                
+                setTimeout(() => {
+                    toast.classList.remove('show');
+                    setTimeout(() => toast.remove(), 300);
+                }, duration);
+            }
+
+            function debounce(func, wait) {
+                let timeout;
+                return function executedFunction(...args) {
+                    const later = () => {
+                        clearTimeout(timeout);
+                        func(...args);
+                    };
+                    clearTimeout(timeout);
+                    timeout = setTimeout(later, wait);
+                };
+            }
+
+            function getInitials(name) {
+                return name
+                    .split(' ')
+                    .map(n => n[0])
+                    .join('')
+                    .toUpperCase()
+                    .slice(0, 2);
+            }
+
+            function sanitizeRoomName(name) {
+                return name.replace(/[^a-zA-Z0-9_]/g, '').slice(0, 50);
+            }
+
+            function updateConnectionStatus() {
+                STATE.isOnline = navigator.onLine;
+                DOM.connectionStatus.textContent = STATE.isOnline ? '🌐 Online' : '📴 Offline';
+                DOM.connectionStatus.style.color = STATE.isOnline 
+                    ? 'var(--accent-secondary)' 
+                    : 'var(--accent-danger)';
+            }
+
+            // ----------------------------------------
+            // COPY ALL FUNCTIONALITY
+            // ----------------------------------------
+            function copyAllContent() {
+                const content = DOM.codeEditor.value;
+                
+                if (!content.trim()) {
+                    showToast('Nothing to copy!', 'warning');
+                    return;
+                }
+                
+                navigator.clipboard.writeText(content).then(() => {
+                    const btn = DOM.copyAllBtn;
+                    const originalHTML = btn.innerHTML;
+                    
+                    btn.innerHTML = '<span>✅</span><span>Copied!</span>';
+                    btn.classList.add('copied');
+                    
+                    setTimeout(() => {
+                        btn.innerHTML = originalHTML;
+                        btn.classList.remove('copied');
+                    }, 2000);
+                    
+                    showToast('Content copied to clipboard!', 'success');
+                }).catch(err => {
+                    showToast('Failed to copy: ' + err.message, 'error');
+                });
+            }
+
+            // ----------------------------------------
+            // IMAGE PASTE HANDLER
+            // ----------------------------------------
+            function handlePaste(e) {
+                const items = e.clipboardData?.items;
+                
+                if (!items) return;
+                
+                for (const item of items) {
+                    if (item.type.startsWith('image/')) {
+                        e.preventDefault();
+                        
+                        const file = item.getAsFile();
+                        const reader = new FileReader();
+                        
+                        reader.onload = function(event) {
+                            const base64 = event.target.result;
+                            const imgTag = `<img src="${base64}" alt="Pasted image" style="max-width: 100%;">`;
+                            
+                            insertAtCursor(imgTag);
+                            updatePreview();
+                            syncToDatabase();
+                            
+                            showToast('Image pasted successfully!', 'success');
+                        };
+                        
+                        reader.readAsDataURL(file);
+                        return;
+                    }
+                }
+                
+                // For text paste, trigger sync after a short delay
+                setTimeout(() => {
+                    updatePreview();
+                    syncToDatabase();
+                }, 0);
+            }
+
+            function insertAtCursor(text) {
+                const textarea = DOM.codeEditor;
+                const start = textarea.selectionStart;
+                const end = textarea.selectionEnd;
+                const before = textarea.value.substring(0, start);
+                const after = textarea.value.substring(end);
+                
+                textarea.value = before + text + after;
+                textarea.selectionStart = textarea.selectionEnd = start + text.length;
+                textarea.focus();
+                
+                updateLineNumbers();
+                updateStats();
+            }
+
+            // ----------------------------------------
+            // IMAGE UPLOAD HANDLER
+            // ----------------------------------------
+            function handleImageUpload(e) {
+                const file = e.target.files[0];
+                
+                if (!file) return;
+                
+                if (!file.type.startsWith('image/')) {
+                    showToast('Please select an image file', 'error');
+                    return;
+                }
+                
+                const reader = new FileReader();
+                
+                reader.onload = function(event) {
+                    const base64 = event.target.result;
+                    const imgTag = `<img src="${base64}" alt="${file.name}" style="max-width: 100%;">`;
+                    
+                    insertAtCursor(imgTag);
+                    updatePreview();
+                    syncToDatabase();
+                    
+                    showToast('Image uploaded successfully!', 'success');
+                };
+                
+                reader.readAsDataURL(file);
+                e.target.value = ''; // Reset input
+            }
+
+            // ----------------------------------------
+            // EDITOR FUNCTIONS
+            // ----------------------------------------
+            function updatePreview() {
+                const content = DOM.codeEditor.value;
+                
+                if (!content.trim()) {
+                    DOM.preview.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-state-icon">✨</div>
+                            <h3 class="empty-state-title">Ready to Create</h3>
+                            <p class="empty-state-desc">Start typing in the editor to see your live preview here.</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                // Check if content looks like HTML
+                const isHTML = /<[a-z][\s\S]*>/i.test(content);
+                
+                if (isHTML) {
+                    DOM.preview.innerHTML = content;
+                } else {
+                    // Convert plain text to HTML
+                    const escapedContent = content
+                        .replace(/&/g, '&amp;')
+                        .replace(/</g, '&lt;')
+                        .replace(/>/g, '&gt;')
+                        .replace(/\n/g, '<br>')
+                        .replace(/  /g, '&nbsp;&nbsp;');
+                    DOM.preview.innerHTML = `<p>${escapedContent}</p>`;
+                }
+            }
+
+            function updateLineNumbers() {
+                const lines = DOM.codeEditor.value.split('\n').length;
+                let lineNumbersHTML = '';
+                
+                for (let i = 1; i <= lines; i++) {
+                    lineNumbersHTML += i + '\n';
+                }
+                
+                DOM.lineNumbers.textContent = lineNumbersHTML;
+            }
+
+            function updateStats() {
+                const content = DOM.codeEditor.value;
+                DOM.charCount.textContent = content.length.toLocaleString();
+                DOM.lineCount.textContent = content.split('\n').length;
+                
+                // Count images
+                const imgCount = (content.match(/<img/gi) || []).length;
+                DOM.imageCount.textContent = imgCount;
+            }
+
+            // ----------------------------------------
+            // SUPABASE INTEGRATION
+            // ----------------------------------------
+            async function initializeSupabase() {
+                if (!CONFIG.SUPABASE_URL || !CONFIG.SUPABASE_KEY) {
+                    console.log('Supabase not configured - running in offline mode');
+                    return false;
+                }
+                
+                try {
+                    STATE.supabase = supabase.createClient(
+                        CONFIG.SUPABASE_URL,
+                        CONFIG.SUPABASE_KEY
+                    );
+                    
+                    return true;
+                } catch (error) {
+                    console.error('Failed to initialize Supabase:', error);
+                    showToast('Database connection failed', 'error');
+                    return false;
+                }
+            }
+
+            async function loadRoomContent() {
+                if (!STATE.supabase || !STATE.roomName) return;
+                
+                try {
+                    const { data, error } = await STATE.supabase
+                        .from(CONFIG.TABLE_NAME)
+                        .select('content, updated_at')
+                        .eq('room_name', STATE.roomName)
+                        .single();
+                    
+                    if (error && error.code !== 'PGRST116') {
+                        throw error;
+                    }
+                    
+                    if (data) {
+                        DOM.codeEditor.value = data.content || '';
+                        STATE.lastContent = data.content || '';
+                        updatePreview();
+                        updateLineNumbers();
+                        updateStats();
+                    }
+                } catch (error) {
+                    console.error('Error loading room content:', error);
+                }
+            }
+
+            async function syncToDatabase() {
+                if (!STATE.supabase || !STATE.roomName) {
+                    updateSyncStatus('offline');
+                    return;
+                }
+                
+                const content = DOM.codeEditor.value;
+                
+                if (content === STATE.lastContent) return;
+                
+                updateSyncStatus('syncing');
+                
+                try {
+                    const { error } = await STATE.supabase
+    .from(CONFIG.TABLE_NAME)
+    .upsert({
+        room_name: STATE.roomName, // Matches your SQL
+        content: content,
+        updated_by: STATE.userName,
+        updated_at: new Date().toISOString()
+    }, {
+        onConflict: 'room_name' // This tells Supabase to update if room exists
     });
+                    
+                    if (error) throw error;
+                    
+                    STATE.lastContent = content;
+                    updateSyncStatus('synced');
+                } catch (error) {
+                    console.error('Sync error:', error);
+                    updateSyncStatus('error');
+                    showToast('Sync failed. Changes saved locally.', 'warning');
+                }
+            }
 
-    // 4. LIVE PREVIEW LOGIC
-    function updatePreview() {
-        const content = codeInput.value;
-        const iframeDoc = outputWindow.contentDocument || outputWindow.contentWindow.document;
-        iframeDoc.open();
-        iframeDoc.write(content);
-        iframeDoc.close();
-    }
+            function subscribeToRoom() {
+                if (!STATE.supabase || !STATE.roomName) return;
+                
+                // Unsubscribe from previous room
+                if (STATE.subscription) {
+                    STATE.subscription.unsubscribe();
+                }
+                
+                STATE.subscription = STATE.supabase
+                    .channel(`room:${STATE.roomName}`)
+                    .on(
+                        'postgres_changes',
+                        {
+                            event: '*',
+                            schema: 'public',
+                            table: CONFIG.TABLE_NAME,
+                            filter: `room_name=eq.${STATE.roomName}`
+                        },
+                        (payload) => {
+                            handleRealtimeUpdate(payload);
+                        }
+                    )
+                    .subscribe();
+            }
 
-    // 5. MEDIA HELPERS
-    function insertMedia(type) {
-        let url = prompt(`Enter ${type} URL:`);
-        if (url) {
-            let tag = type === 'image' ? `<img src="${url}" width="100%">` : `<video src="${url}" controls width="100%"></video>`;
-            codeInput.value += `\n${tag}\n`;
-            updatePreview();
-        }
-    }
-</script>
+            function handleRealtimeUpdate(payload) {
+                if (payload.new && payload.new.updated_by !== STATE.userName) {
+                    const newContent = payload.new.content;
+                    
+                    if (newContent !== DOM.codeEditor.value) {
+                        // Save cursor position
+                        const cursorPos = DOM.codeEditor.selectionStart;
+                        
+                        DOM.codeEditor.value = newContent;
+                        STATE.lastContent = newContent;
+                        
+                        // Restore cursor position
+                        DOM.codeEditor.selectionStart = DOM.codeEditor.selectionEnd = Math.min(cursorPos, newContent.length);
+                        
+                        updatePreview();
+                        updateLineNumbers();
+                        updateStats();
+                        
+                        // Show typing indicator
+                        showTypingIndicator(payload.new.updated_by);
+                    }
+                }
+            }
+
+            function updateSyncStatus(status) {
+                const statusEl = DOM.syncStatus;
+                
+                statusEl.classList.remove('synced', 'syncing', 'error');
+                statusEl.classList.add(status);
+                
+                const statuses = {
+                    synced: '<span>✅</span><span>Synced</span>',
+                    syncing: '<span>🔄</span><span>Syncing...</span>',
+                    error: '<span>❌</span><span>Sync Error</span>',
+                    offline: '<span>📴</span><span>Offline</span>'
+                };
+                
+                statusEl.innerHTML = statuses[status] || statuses.offline;
+            }
+
+            function showTypingIndicator(userName) {
+                DOM.typingUser.textContent = userName;
+                DOM.typingIndicator.classList.add('active');
+                
+                clearTimeout(STATE.typingTimeout);
+                STATE.typingTimeout = setTimeout(() => {
+                    DOM.typingIndicator.classList.remove('active');
+                }, CONFIG.TYPING_TIMEOUT);
+            }
+
+            // ----------------------------------------
+            // ROOM MANAGEMENT
+            // ----------------------------------------
+            function checkRoomFromURL() {
+                const params = new URLSearchParams(window.location.search);
+                const roomFromURL = params.get('room');
+                const savedRoom = localStorage.getItem('collabnote_room');
+                const savedUser = localStorage.getItem('collabnote_user');
+                
+                if (roomFromURL) {
+                    STATE.roomName = sanitizeRoomName(roomFromURL);
+                    DOM.roomNameInput.value = STATE.roomName;
+                    
+                    if (savedUser) {
+                        STATE.userName = savedUser;
+                        joinRoom();
+                        return;
+                    }
+                }
+                
+                if (savedRoom && savedUser) {
+                    STATE.roomName = savedRoom;
+                    STATE.userName = savedUser;
+                    joinRoom();
+                    return;
+                }
+                
+                // Show room modal
+                DOM.roomModal.classList.add('active');
+            }
+
+            async function joinRoom() {
+                if (!STATE.roomName || !STATE.userName) {
+                    showToast('Please enter room name and your name', 'error');
+                    return;
+                }
+                
+                // Save to localStorage
+                localStorage.setItem('collabnote_room', STATE.roomName);
+                localStorage.setItem('collabnote_user', STATE.userName);
+                
+                // Update URL
+                const url = new URL(window.location);
+                url.searchParams.set('room', STATE.roomName);
+                window.history.replaceState({}, '', url);
+                
+                // Update UI
+                DOM.roomNameDisplay.textContent = STATE.roomName;
+                DOM.userNameDisplay.textContent = STATE.userName;
+                DOM.userAvatar.textContent = getInitials(STATE.userName);
+                
+                // Hide modal
+                DOM.roomModal.classList.remove('active');
+                
+                // Initialize Supabase and load content
+                const supabaseReady = await initializeSupabase();
+                
+                if (supabaseReady) {
+                    await loadRoomContent();
+                    subscribeToRoom();
+                    showToast(`Joined room: ${STATE.roomName}`, 'success');
+                } else {
+                    showToast('Running in offline mode', 'info');
+                }
+                
+                // Load local content if available
+                const localContent = localStorage.getItem(`collabnote_content_${STATE.roomName}`);
+                if (localContent && !DOM.codeEditor.value) {
+                    DOM.codeEditor.value = localContent;
+                    updatePreview();
+                    updateLineNumbers();
+                    updateStats();
+                }
+            }
+
+            // ----------------------------------------
+            // SKETCHPAD FUNCTIONALITY
+            // ----------------------------------------
+            function initializeSketchpad() {
+                const canvas = DOM.sketchpad;
+                const ctx = canvas.getContext('2d');
+                let isDrawing = false;
+                let lastX = 0;
+                let lastY = 0;
+                
+                // Set initial canvas background
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                function getCoordinates(e) {
+                    const rect = canvas.getBoundingClientRect();
+                    const scaleX = canvas.width / rect.width;
+                    const scaleY = canvas.height / rect.height;
+                    
+                    if (e.touches) {
+                        return {
+                            x: (e.touches[0].clientX - rect.left) * scaleX,
+                            y: (e.touches[0].clientY - rect.top) * scaleY
+                        };
+                    }
+                    
+                    return {
+                        x: (e.clientX - rect.left) * scaleX,
+                        y: (e.clientY - rect.top) * scaleY
+                    };
+                }
+                
+                function startDrawing(e) {
+                    isDrawing = true;
+                    const coords = getCoordinates(e);
+                    lastX = coords.x;
+                    lastY = coords.y;
+                }
+                
+                function draw(e) {
+                    if (!isDrawing) return;
+                    e.preventDefault();
+                    
+                    const coords = getCoordinates(e);
+                    
+                    ctx.beginPath();
+                    ctx.moveTo(lastX, lastY);
+                    ctx.lineTo(coords.x, coords.y);
+                    ctx.strokeStyle = DOM.brushColor.value;
+                    ctx.lineWidth = DOM.brushSize.value;
+                    ctx.lineCap = 'round';
+                    ctx.lineJoin = 'round';
+                    ctx.stroke();
+                    
+                    lastX = coords.x;
+                    lastY = coords.y;
+                }
+                
+                function stopDrawing() {
+                    isDrawing = false;
+                }
+                
+                // Mouse events
+                canvas.addEventListener('mousedown', startDrawing);
+                canvas.addEventListener('mousemove', draw);
+                canvas.addEventListener('mouseup', stopDrawing);
+                canvas.addEventListener('mouseout', stopDrawing);
+                
+                // Touch events
+                canvas.addEventListener('touchstart', startDrawing);
+                canvas.addEventListener('touchmove', draw);
+                canvas.addEventListener('touchend', stopDrawing);
+                
+                // Clear sketchpad
+                DOM.clearSketchpad.addEventListener('click', () => {
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                });
+                
+                // Insert drawing as image
+                DOM.insertDrawing.addEventListener('click', () => {
+                    const dataURL = canvas.toDataURL('image/png');
+                    const imgTag = `<img src="${dataURL}" alt="Handwritten note" style="max-width: 100%;">`;
+                    
+                    insertAtCursor(imgTag);
+                    updatePreview();
+                    syncToDatabase();
+                    
+                    DOM.sketchpadModal.classList.remove('active');
+                    showToast('Drawing inserted!', 'success');
+                });
+            }
+
+            // ----------------------------------------
+            // OCR FUNCTIONALITY (Tesseract.js)
+            // ----------------------------------------
+            async function recognizeHandwriting() {
+                const canvas = DOM.sketchpad;
+                
+                DOM.ocrStatus.style.display = 'flex';
+                DOM.ocrProgress.style.display = 'block';
+                DOM.recognizeText.disabled = true;
+                
+                try {
+                    const result = await Tesseract.recognize(
+                        canvas.toDataURL('image/png'),
+                        'eng',
+                        {
+                            logger: m => {
+                                if (m.status === 'recognizing text') {
+                                    DOM.ocrProgressFill.style.width = `${Math.round(m.progress * 100)}%`;
+                                }
+                            }
+                        }
+                    );
+                    
+                    const text = result.data.text.trim();
+                    
+                    if (text) {
+                        insertAtCursor(text);
+                        updatePreview();
+                        syncToDatabase();
+                        
+                        DOM.sketchpadModal.classList.remove('active');
+                        showToast('Text recognized and inserted!', 'success');
+                    } else {
+                        showToast('No text recognized. Try writing more clearly.', 'warning');
+                    }
+                } catch (error) {
+                    console.error('OCR error:', error);
+                    showToast('OCR failed. Please try again.', 'error');
+                } finally {
+                    DOM.ocrStatus.style.display = 'none';
+                    DOM.ocrProgress.style.display = 'none';
+                    DOM.ocrProgressFill.style.width = '0%';
+                    DOM.recognizeText.disabled = false;
+                }
+            }
+
+            // ----------------------------------------
+            // PDF EXPORT
+            // ----------------------------------------
+            function exportToPDF() {
+                const content = DOM.preview.cloneNode(true);
+                
+                // Remove empty state if present
+                const emptyState = content.querySelector('.empty-state');
+                if (emptyState) {
+                    showToast('Nothing to export!', 'warning');
+                    return;
+                }
+                
+                showToast('Generating PDF...', 'info');
+                
+                const opt = {
+                    margin: [15, 15, 15, 15],
+                    filename: `CollabNote_${STATE.roomName || 'Export'}_${new Date().toISOString().split('T')[0]}.pdf`,
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: { 
+                        scale: 2,
+                        useCORS: true,
+                        letterRendering: true
+                    },
+                    jsPDF: { 
+                        unit: 'mm', 
+                        format: 'a4', 
+                        orientation: 'portrait'
+                    }
+                };
+                
+                html2pdf().set(opt).from(content).save().then(() => {
+                    showToast('PDF exported successfully!', 'success');
+                }).catch(err => {
+                    console.error('PDF export error:', err);
+                    showToast('PDF export failed', 'error');
+                });
+            }
+
+            // ----------------------------------------
+            // SETTINGS MANAGEMENT
+            // ----------------------------------------
+            function loadSettings() {
+    // Force Line Numbers to be ON by default
+    DOM.lineNumbers.style.display = 'block';
+    DOM.codeEditor.classList.add('editor-with-lines');
+            }
+
+            function saveSettings() {
+                const url = DOM.supabaseUrl.value.trim();
+                const key = DOM.supabaseKey.value.trim();
+                
+                localStorage.setItem('supabase_url', url);
+                localStorage.setItem('supabase_key', key);
+                localStorage.setItem('lineNumbers', DOM.lineNumbersToggle.checked);
+                
+                CONFIG.SUPABASE_URL = url;
+                CONFIG.SUPABASE_KEY = key;
+                
+                // Apply line numbers setting
+                DOM.lineNumbers.style.display = DOM.lineNumbersToggle.checked ? 'block' : 'none';
+                DOM.codeEditor.classList.toggle('editor-with-lines', DOM.lineNumbersToggle.checked);
+                
+                DOM.settingsModal.classList.remove('active');
+                showToast('Settings saved! Refresh to apply database changes.', 'success');
+            }
+
+            // ----------------------------------------
+            // EVENT LISTENERS
+            // ----------------------------------------
+            function initializeEventListeners() {
+                // Editor events
+                DOM.codeEditor.addEventListener('input', () => {
+                    updatePreview();
+                    updateLineNumbers();
+                    updateStats();
+                    
+                    // Debounced sync
+                    clearTimeout(STATE.syncTimeout);
+                    STATE.syncTimeout = setTimeout(syncToDatabase, CONFIG.SYNC_DEBOUNCE);
+                    
+                    // Save locally
+                    if (STATE.roomName) {
+                        localStorage.setItem(`collabnote_content_${STATE.roomName}`, DOM.codeEditor.value);
+                    }
+                });
+                
+                DOM.codeEditor.addEventListener('scroll', () => {
+                    DOM.lineNumbers.scrollTop = DOM.codeEditor.scrollTop;
+                });
+                
+                // Global paste handler
+                document.addEventListener('paste', handlePaste);
+                
+                // Copy All button
+                DOM.copyAllBtn.addEventListener('click', copyAllContent);
+                
+                // Export PDF
+                DOM.exportPdfBtn.addEventListener('click', exportToPDF);
+                
+                // Handwriting toggle
+                DOM.handwritingToggle.addEventListener('change', (e) => {
+                    DOM.preview.classList.toggle('handwriting-font', e.target.checked);
+                });
+                
+                // Room join
+                DOM.joinRoomBtn.addEventListener('click', () => {
+                    STATE.roomName = sanitizeRoomName(DOM.roomNameInput.value.trim());
+                    STATE.userName = DOM.userNameInput.value.trim();
+                    
+                    if (!STATE.roomName || !STATE.userName) {
+                        showToast('Please fill in all fields', 'error');
+                        return;
+                    }
+                    
+                    joinRoom();
+                });
+                
+                // Enter key in room inputs
+                DOM.roomNameInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') DOM.userNameInput.focus();
+                });
+                
+                DOM.userNameInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') DOM.joinRoomBtn.click();
+                });
+                
+                // FAB menu
+                DOM.mainFab.addEventListener('click', () => {
+                    DOM.mainFab.parentElement.classList.toggle('active');
+                });
+                
+                // Sketchpad FAB
+                DOM.sketchpadFab.addEventListener('click', () => {
+                    DOM.sketchpadModal.classList.add('active');
+                });
+                
+                document.getElementById('closeSketchpad').addEventListener('click', () => {
+                    DOM.sketchpadModal.classList.remove('active');
+                });
+                
+                // OCR
+                DOM.recognizeText.addEventListener('click', recognizeHandwriting);
+                
+                // Image upload
+                DOM.uploadImageFab.addEventListener('click', () => {
+                    DOM.imageUpload.click();
+                });
+                
+                DOM.imageUpload.addEventListener('change', handleImageUpload);
+                
+                // Templates
+                DOM.templateFab.addEventListener('click', () => {
+                    DOM.templatesModal.classList.add('active');
+                });
+                
+                document.getElementById('closeTemplates').addEventListener('click', () => {
+                    DOM.templatesModal.classList.remove('active');
+                });
+                
+                document.querySelectorAll('[data-template]').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const templateKey = btn.dataset.template;
+                        if (TEMPLATES[templateKey]) {
+                            DOM.codeEditor.value = TEMPLATES[templateKey];
+                            updatePreview();
+                            updateLineNumbers();
+                            updateStats();
+                            syncToDatabase();
+                            DOM.templatesModal.classList.remove('active');
+                            showToast('Template loaded!', 'success');
+                        }
+                    });
+                });
+                
+                // Settings
+                DOM.settingsBtn.addEventListener('click', () => {
+                    loadSettings();
+                    DOM.settingsModal.classList.add('active');
+                });
+                
+                document.getElementById('closeSettings').addEventListener('click', () => {
+                    DOM.settingsModal.classList.remove('active');
+                });
+                
+                DOM.saveSettings.addEventListener('click', saveSettings);
+                
+                // Clear editor
+                DOM.clearEditorBtn.addEventListener('click', () => {
+                    if (confirm('Clear all content?')) {
+                        DOM.codeEditor.value = '';
+                        updatePreview();
+                        updateLineNumbers();
+                        updateStats();
+                        syncToDatabase();
+                    }
+                });
+                
+                // Connection status
+                window.addEventListener('online', () => {
+                    updateConnectionStatus();
+                    showToast('Back online!', 'success');
+                    syncToDatabase();
+                });
+                
+                window.addEventListener('offline', () => {
+                    updateConnectionStatus();
+                    showToast('You are offline', 'warning');
+                });
+                
+                // Close modals on overlay click
+                document.querySelectorAll('.modal-overlay').forEach(overlay => {
+                    overlay.addEventListener('click', (e) => {
+                        if (e.target === overlay && overlay.id !== 'roomModal') {
+                            overlay.classList.remove('active');
+                        }
+                    });
+                });
+                
+                // Keyboard shortcuts
+                document.addEventListener('keydown', (e) => {
+                    // Ctrl/Cmd + S - Save/Sync
+                    if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+                        e.preventDefault();
+                        syncToDatabase();
+                        showToast('Synced!', 'success');
+                    }
+                    
+                    // Ctrl/Cmd + Shift + C - Copy All
+                    if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'C') {
+                        e.preventDefault();
+                        copyAllContent();
+                    }
+                    
+                    // Escape - Close modals
+                    if (e.key === 'Escape') {
+                        document.querySelectorAll('.modal-overlay.active').forEach(modal => {
+                            if (modal.id !== 'roomModal') {
+                                modal.classList.remove('active');
+                            }
+                        });
+                    }
+                });
+                
+                // Refresh preview button
+                document.getElementById('refreshPreviewBtn').addEventListener('click', updatePreview);
+                
+                // Fullscreen preview
+                document.getElementById('fullscreenPreviewBtn').addEventListener('click', () => {
+                    const previewWrapper = document.querySelector('.preview-wrapper');
+                    if (previewWrapper.requestFullscreen) {
+                        previewWrapper.requestFullscreen();
+                    }
+                });
+            }
+
+            // ----------------------------------------
+            // SERVICE WORKER REGISTRATION
+            // ----------------------------------------
+            async function registerServiceWorker() {
+                if ('serviceWorker' in navigator) {
+                    try {
+                        const registration = await navigator.serviceWorker.register('sw.js');
+                        console.log('Service Worker registered:', registration);
+                    } catch (error) {
+                        console.log('Service Worker registration failed:', error);
+                    }
+                }
+            }
+
+            // ----------------------------------------
+            // INITIALIZATION
+            // ----------------------------------------
+            async function initialize() {
+                // Register service worker
+                await registerServiceWorker();
+                
+                // Initialize event listeners
+                initializeEventListeners();
+                
+                // Initialize sketchpad
+                initializeSketchpad();
+                
+                // Load settings
+                loadSettings();
+                
+                // Update connection status
+                updateConnectionStatus();
+                
+                // Check room from URL
+                checkRoomFromURL();
+                
+                // Hide loading screen
+                setTimeout(() => {
+                    DOM.loadingScreen.classList.add('hidden');
+                }, 500);
+            }
+            function shareRoom() {
+    const currentUrl = window.location.href;
+    navigator.clipboard.writeText(currentUrl);
+    
+    // Using your toast system
+    showToast("Link copied! Send this to your friend in Swoyambhu.", "success");
+}
+            // Start the app
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initialize);
+            } else {
+                initialize();
+            }
+        })();
+    </script>
 </body>
 </html>
