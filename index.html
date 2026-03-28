@@ -3,300 +3,245 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#1e1e2e">
-    <title>Nepal CollabNote Pro</title>
+    <title>Nepal Collab Pro</title>
     
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;700&family=Fira+Code&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-    
-    <!-- External Libraries -->
+    <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Fira+Code&display=swap" rel="stylesheet">
+    
     <style>
         :root {
-            --bg-primary: #0d1117; --bg-secondary: #161b22; --bg-tertiary: #21262d;
-            --text-primary: #e6edf3; --text-secondary: #8b949e; --accent-primary: #58a6ff;
-            --accent-secondary: #3fb950; --border-color: #30363d; --radius-sm: 6px;
+            --bg: #0f172a; --sidebar: #1e293b; --accent: #6366f1;
+            --text: #f8fafc; --border: #334155;
         }
 
-        body { font-family: 'Inter', sans-serif; background: var(--bg-primary); color: var(--text-primary); margin: 0; overflow: hidden; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { margin: 0; font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); display: flex; height: 100vh; overflow: hidden; }
 
-        /* Header */
-        .header { background: var(--bg-secondary); border-bottom: 1px solid var(--border-color); padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; }
-        .logo { font-size: 1.2rem; font-weight: 700; background: linear-gradient(135deg, var(--accent-primary), #a371f7); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .room-info { display: flex; align-items: center; gap: 15px; font-size: 0.85rem; }
-        .badge { background: var(--bg-tertiary); padding: 5px 12px; border-radius: 15px; border: 1px solid var(--border-color); }
+        /* Sidebar - Permanent Groups */
+        .sidebar { width: 260px; background: var(--sidebar); border-right: 1px solid var(--border); display: flex; flex-direction: column; transition: 0.3s; }
+        .sidebar-header { padding: 20px; font-weight: 700; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; }
+        .group-list { flex: 1; overflow-y: auto; padding: 10px; }
+        .group-item { padding: 12px; border-radius: 8px; cursor: pointer; margin-bottom: 5px; font-size: 0.9rem; }
+        .group-item:hover, .group-item.active { background: var(--accent); color: white; }
 
-        /* Split Screen */
-        .main-container { display: grid; grid-template-columns: 1fr 1fr; height: calc(100vh - 120px); background: var(--border-color); }
-        .panel { display: flex; flex-direction: column; background: var(--bg-primary); overflow: hidden; }
-        .panel-header { padding: 8px 15px; background: var(--bg-secondary); border-bottom: 1px solid var(--border-color); font-size: 0.8rem; font-weight: 600; color: var(--text-secondary); }
-        
-        #codeEditor { flex: 1; padding: 20px; font-family: 'Fira Code', monospace; background: var(--bg-primary); color: white; border: none; outline: none; resize: none; line-height: 1.6; }
-        .preview-wrapper { flex: 1; background: white; color: black; overflow: auto; padding: 20px; }
-        .handwriting-font { font-family: 'Dancing Script', cursive; font-size: 1.5rem; }
+        /* Main Content Area */
+        .main-content { flex: 1; display: flex; flex-direction: column; position: relative; background: var(--bg); }
+        .header { height: 60px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 20px; }
 
-        /* Buttons */
-        .btn { padding: 8px 15px; border-radius: 6px; border: none; cursor: pointer; font-weight: 600; font-size: 0.8rem; display: flex; align-items: center; gap: 5px; color: white; }
-        .btn-primary { background: var(--accent-primary); }
-        .btn-success { background: var(--accent-secondary); }
-        .btn-secondary { background: var(--bg-tertiary); border: 1px solid var(--border-color); }
+        /* Note Editor */
+        .editor-container { flex: 1; display: flex; overflow: hidden; }
+        .editor-pane { flex: 1; padding: 40px; overflow-y: auto; line-height: 1.6; font-size: 1.1rem; outline: none; }
+        .editor-pane:empty:before { content: "Start typing your note..."; color: #64748b; }
 
-        /* FAB */
-        .fab-container { position: fixed; bottom: 20px; right: 20px; display: flex; flex-direction: column; gap: 10px; z-index: 1000; }
-        .fab { width: 50px; height: 50px; border-radius: 50%; border: none; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
-        .fab-primary { background: var(--accent-primary); color: white; }
+        /* Split Screen Logic */
+        .split-pane { border-left: 1px solid var(--border); background: #0b0f1a; display: none; }
+        .split-pane.active { display: block; flex: 1; padding: 40px; }
 
-        /* Modals */
-        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center; z-index: 2000; }
-        .modal-overlay.active { display: flex; }
-        .modal { background: var(--bg-secondary); padding: 25px; border-radius: 12px; width: 90%; max-width: 400px; }
-        .form-input { width: 100%; padding: 10px; margin: 10px 0; background: var(--bg-primary); border: 1px solid var(--border-color); color: white; border-radius: 5px; }
+        /* Floating + Button */
+        .fab-container { position: fixed; bottom: 30px; right: 30px; z-index: 100; }
+        .fab { width: 56px; height: 56px; border-radius: 50%; background: var(--accent); color: white; border: none; font-size: 24px; cursor: pointer; box-shadow: 0 10px 20px rgba(0,0,0,0.3); }
+        .plus-menu { position: absolute; bottom: 70px; right: 0; background: var(--sidebar); border: 1px solid var(--border); border-radius: 12px; display: none; flex-direction: column; width: 200px; padding: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .plus-menu.show { display: flex; }
+        .menu-item { padding: 10px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; display: flex; align-items: center; gap: 10px; }
+        .menu-item:hover { background: var(--bg); }
 
-        /* Toast */
-        .toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; }
-        .toast { background: var(--bg-secondary); border-left: 4px solid var(--accent-secondary); padding: 12px 20px; border-radius: 5px; color: white; margin-bottom: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+        /* Code Block Styling */
+        .code-block { background: #111; border-radius: 8px; margin: 20px 0; border: 1px solid var(--border); position: relative; }
+        .code-header { background: #222; padding: 5px 15px; border-radius: 8px 8px 0 0; display: flex; justify-content: space-between; font-size: 12px; color: #888; }
+        .code-content { padding: 15px; font-family: 'Fira Code', monospace; font-size: 14px; overflow-x: auto; color: #58a6ff; white-space: pre; }
+        .copy-btn { cursor: pointer; color: var(--accent); }
 
-        @media (max-width: 768px) { .main-container { grid-template-columns: 1fr; } }
+        /* Mobile Adjustments */
+        @media (max-width: 768px) {
+            .sidebar { position: fixed; left: -260px; z-index: 1000; height: 100%; }
+            .sidebar.open { left: 0; }
+            .editor-pane { padding: 20px; font-size: 1rem; }
+            .split-pane.active { display: none; } /* Hide split on mobile for focus */
+        }
     </style>
 </head>
 <body>
 
-    <div class="loading-screen" id="loadingScreen" style="position:fixed; inset:0; background:#0d1117; z-index:9999; display:flex; align-items:center; justify-content:center; color:white;">Loading CollabNote Pro...</div>
-    <div class="toast-container" id="toastContainer"></div>
-
-    <header class="header">
-        <div class="logo">CollabNote Pro</div>
-        <div class="room-info">
-            <div class="badge">🏠 Room: <span id="roomNameDisplay">-</span></div>
-            <div class="badge">👤 <span id="userNameDisplay">Guest</span></div>
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <span>MY GROUPS</span>
+            <button onclick="createNewGroup()" style="background:none; border:none; color:white; cursor:pointer;">+</button>
         </div>
-        <div style="display:flex; gap:10px;">
-            <button class="btn btn-secondary" id="shareRoomBtn">🔗 Share</button>
-            <button class="btn btn-primary" id="copyAllBtn">📋 Copy</button>
-            <button class="btn btn-success" id="exportPdfBtn">📄 PDF</button>
+        <div class="group-list" id="groupList">
+            <!-- Groups will load here -->
         </div>
-    </header>
+    </div>
 
-    <main class="main-container">
-        <section class="panel">
-            <div class="panel-header">CODE EDITOR</div>
-            <textarea id="codeEditor" placeholder="Type here or paste images (Ctrl+V)..."></textarea>
-        </section>
-        <section class="panel">
-            <div class="panel-header">
-                LIVE PREVIEW 
-                <label style="float:right; cursor:pointer;"><input type="checkbox" id="handwritingToggle"> ✍️ Handwriting</label>
+    <!-- Main Content -->
+    <div class="main-content">
+        <header class="header">
+            <button id="menuToggle" onclick="toggleSidebar()" style="display:none; background:none; border:none; color:white; font-size:20px;">☰</button>
+            <div id="activeGroupName" style="font-weight: 600;">Loading...</div>
+            <div id="collaboratorStatus" style="font-size: 12px; color: #22c55e;"></div>
+        </header>
+
+        <div class="editor-container">
+            <!-- My Workspace -->
+            <div class="editor-pane" id="noteEditor" contenteditable="true"></div>
+            
+            <!-- Friend's View (Split Screen) -->
+            <div class="split-pane" id="friendPane">
+                <div style="font-size: 12px; color: var(--accent); margin-bottom: 10px;" id="friendName">Friend typing...</div>
+                <div id="friendContent" style="opacity: 0.7;"></div>
             </div>
-            <div class="preview-wrapper" id="preview"></div>
-        </section>
-    </main>
+        </div>
+    </div>
 
-    <footer style="padding: 10px 20px; background: var(--bg-secondary); border-top: 1px solid var(--border-color); font-size: 0.7rem; display: flex; justify-content: space-between; color: var(--text-secondary);">
-        <div>Chars: <span id="charCount">0</span> | Lines: <span id="lineCount">1</span></div>
-        <div id="syncStatus">✅ Synced</div>
-    </footer>
-
-    <!-- FAB Menu -->
+    <!-- Floating Actions -->
     <div class="fab-container">
-        <button class="fab fab-primary" onclick="openSketchpad()">✏️</button>
+        <div class="plus-menu" id="plusMenu">
+            <div class="menu-item" onclick="insertCodeBlock()">💻 Add Code Block</div>
+            <div class="menu-item" onclick="triggerImageUpload()">🖼️ Upload Image</div>
+            <div class="menu-item" onclick="applyHighlight()">🖍️ Highlight Text</div>
+        </div>
+        <button class="fab" onclick="togglePlusMenu()">+</button>
     </div>
 
-    <!-- Room Modal -->
-    <div class="modal-overlay" id="roomModal">
-        <div class="modal">
-            <h3>Join Room</h3>
-            <input type="text" id="roomNameInput" class="form-input" placeholder="Room Name (e.g. NepalTeam)">
-            <input type="text" id="userNameInput" class="form-input" placeholder="Your Name">
-            <button class="btn btn-primary" style="width:100%" id="joinRoomBtn">Launch App</button>
-        </div>
-    </div>
-
-    <!-- Sketchpad Modal -->
-    <div class="modal-overlay" id="sketchpadModal">
-        <div class="modal" style="max-width:600px">
-            <h3>Handwriting to Text</h3>
-            <canvas id="sketchpad" width="500" height="250" style="background:white; cursor:crosshair; width:100%; border-radius:5px;"></canvas>
-            <div style="margin-top:10px; display:flex; gap:10px;">
-                <button class="btn btn-secondary" onclick="clearCanvas()">Clear</button>
-                <button class="btn btn-primary" id="recognizeText">AI Convert to Text</button>
-                <button class="btn btn-secondary" onclick="document.getElementById('sketchpadModal').classList.remove('active')">Close</button>
-            </div>
-        </div>
-    </div>
+    <input type="file" id="imgInput" hidden accept="image/*">
 
     <script>
-        (function() {
-            const CONFIG = {
-                SUPABASE_URL: 'https://ycnmgtdxljncunnktbef.supabase.co', 
-                SUPABASE_KEY: 'sb_publishable_ic4z42pOnv3_DNfgt4GvJg_d-E1CPVV', 
-                TABLE_NAME: 'shared_notes'
-            };
+        // CONFIG
+        const CONFIG = {
+            URL: 'https://ycnmgtdxljncunnktbef.supabase.co',
+            KEY: 'sb_publishable_ic4z42pOnv3_DNfgt4GvJg_d-E1CPVV',
+            TABLE: 'shared_notes'
+        };
 
-            const STATE = { roomName: null, userName: null, supabase: null, lastContent: '' };
+        const supabase = supabase.createClient(CONFIG.URL, CONFIG.KEY);
+        let currentRoom = localStorage.getItem('lastRoom') || 'General';
+        let myName = localStorage.getItem('userName') || prompt("Your Name:");
+        localStorage.setItem('userName', myName);
 
-            const DOM = {
-                codeEditor: document.getElementById('codeEditor'),
-                preview: document.getElementById('preview'),
-                roomModal: document.getElementById('roomModal'),
-                roomNameInput: document.getElementById('roomNameInput'),
-                userNameInput: document.getElementById('userNameInput'),
-                joinRoomBtn: document.getElementById('joinRoomBtn'),
-                shareRoomBtn: document.getElementById('shareRoomBtn'),
-                copyAllBtn: document.getElementById('copyAllBtn'),
-                exportPdfBtn: document.getElementById('exportPdfBtn'),
-                handwritingToggle: document.getElementById('handwritingToggle'),
-                charCount: document.getElementById('charCount'),
-                lineCount: document.getElementById('lineCount'),
-                syncStatus: document.getElementById('syncStatus'),
-                sketchpadModal: document.getElementById('sketchpadModal'),
-                sketchpad: document.getElementById('sketchpad')
-            };
-
-            // Initialize App
-            async function init() {
-                STATE.supabase = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_KEY);
-                
-                const urlParams = new URLSearchParams(window.location.search);
-                const room = urlParams.get('room');
-                const user = localStorage.getItem('user');
-
-                if (room && user) {
-                    STATE.roomName = room;
-                    STATE.userName = user;
-                    launch();
-                } else {
-                    DOM.roomModal.classList.add('active');
-                    if (room) DOM.roomNameInput.value = room;
-                }
-
-                document.getElementById('loadingScreen').style.display = 'none';
-            }
-
-            async function launch() {
-                DOM.roomModal.classList.remove('active');
-                document.getElementById('roomNameDisplay').innerText = STATE.roomName;
-                document.getElementById('userNameDisplay').innerText = STATE.userName;
-
-                // Load existing data
-                const { data } = await STATE.supabase.from(CONFIG.TABLE_NAME).select('content').eq('room_name', STATE.roomName).single();
-                if (data) {
-                    DOM.codeEditor.value = data.content;
-                    updatePreview();
-                }
-
-                // Subscribe to changes
-                STATE.supabase.channel('room1')
-                .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: CONFIG.TABLE_NAME, filter: `room_name=eq.${STATE.roomName}` }, payload => {
-                    if (payload.new.updated_by !== STATE.userName) {
-                        DOM.codeEditor.value = payload.new.content;
-                        updatePreview();
-                    }
-                }).subscribe();
-            }
-
-            // Sync logic
-            let syncTimer;
-            DOM.codeEditor.addEventListener('input', () => {
-                updatePreview();
-                DOM.syncStatus.innerText = "🔄 Syncing...";
-                clearTimeout(syncTimer);
-                syncTimer = setTimeout(async () => {
-                    await STATE.supabase.from(CONFIG.TABLE_NAME).upsert({
-                        room_name: STATE.roomName,
-                        content: DOM.codeEditor.value,
-                        updated_by: STATE.userName,
-                        updated_at: new Date()
-                    }, { onConflict: 'room_name' });
-                    DOM.syncStatus.innerText = "✅ Synced";
-                }, 1000);
-            });
-
-            function updatePreview() {
-                DOM.preview.innerHTML = DOM.codeEditor.value;
-                DOM.charCount.innerText = DOM.codeEditor.value.length;
-                DOM.lineCount.innerText = DOM.codeEditor.value.split('\n').length;
-            }
-
-            // Copy/Paste Features
-            DOM.shareRoomBtn.onclick = () => {
-                const url = window.location.origin + window.location.pathname + "?room=" + STATE.roomName;
-                navigator.clipboard.writeText(url);
-                showToast("Link copied! Send to your friend.");
-            };
-
-            DOM.copyAllBtn.onclick = () => {
-                navigator.clipboard.writeText(DOM.codeEditor.value);
-                showToast("All content copied!");
-            };
-
-            // Smart Paste for Images
-            document.addEventListener('paste', e => {
-                const item = e.clipboardData.items[0];
-                if (item?.type.includes('image')) {
-                    const blob = item.getAsFile();
-                    const reader = new FileReader();
-                    reader.onload = event => {
-                        const tag = `\n<img src="${event.target.result}" style="max-width:100%">\n`;
-                        DOM.codeEditor.value += tag;
-                        updatePreview();
-                    };
-                    reader.readAsDataURL(blob);
-                }
-            });
-
-            // Handlers
-            DOM.joinRoomBtn.onclick = () => {
-                const room = DOM.roomNameInput.value.trim();
-                const user = DOM.userNameInput.value.trim();
-                if (room && user) {
-                    STATE.roomName = room;
-                    STATE.userName = user;
-                    localStorage.setItem('user', user);
-                    const newUrl = window.location.pathname + "?room=" + room;
-                    window.history.pushState({}, '', newUrl);
-                    launch();
-                }
-            };
-
-            DOM.handwritingToggle.onchange = (e) => {
-                DOM.preview.classList.toggle('handwriting-font', e.target.checked);
-            };
-
-            DOM.exportPdfBtn.onclick = () => {
-                html2pdf().from(DOM.preview).save(`Note_${STATE.roomName}.pdf`);
-            };
-
-            // Sketchpad Logic
-            const ctx = DOM.sketchpad.getContext('2d');
-            let drawing = false;
-            window.openSketchpad = () => DOM.sketchpadModal.classList.add('active');
-            window.clearCanvas = () => ctx.clearRect(0,0,500,250);
+        // INITIALIZE
+        async function init() {
+            loadGroups();
+            joinRoom(currentRoom);
             
-            DOM.sketchpad.onmousedown = (e) => { drawing = true; ctx.beginPath(); ctx.moveTo(e.offsetX, e.offsetY); };
-            DOM.sketchpad.onmousemove = (e) => { if(drawing) { ctx.lineTo(e.offsetX, e.offsetY); ctx.stroke(); } };
-            DOM.sketchpad.onmouseup = () => drawing = false;
+            // Handle Mobile Toggle visibility
+            if(window.innerWidth < 768) document.getElementById('menuToggle').style.display = 'block';
+        }
 
-            document.getElementById('recognizeText').onclick = async () => {
-                showToast("AI analyzing handwriting...");
-                const result = await Tesseract.recognize(DOM.sketchpad.toDataURL(), 'eng');
-                DOM.codeEditor.value += " " + result.data.text;
-                updatePreview();
-                DOM.sketchpadModal.classList.remove('active');
+        // ROOM LOGIC
+        async function joinRoom(roomName) {
+            currentRoom = roomName;
+            localStorage.setItem('lastRoom', roomName);
+            document.getElementById('activeGroupName').innerText = "# " + roomName;
+            
+            // Load Initial Data
+            const { data } = await supabase.from(CONFIG.TABLE).select('content').eq('room_name', roomName).single();
+            document.getElementById('noteEditor').innerHTML = data ? data.content : "";
+
+            // Subscribe to real-time
+            supabase.channel(roomName)
+            .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: CONFIG.TABLE, filter: `room_name=eq.${roomName}` }, payload => {
+                if (payload.new.updated_by !== myName) {
+                    showFriendAction(payload.new.updated_by, payload.new.content);
+                }
+            }).subscribe();
+        }
+
+        // SYNC DATA
+        let syncTimeout;
+        document.getElementById('noteEditor').addEventListener('input', () => {
+            clearTimeout(syncTimeout);
+            syncTimeout = setTimeout(async () => {
+                await supabase.from(CONFIG.TABLE).upsert({
+                    room_name: currentRoom,
+                    content: document.getElementById('noteEditor').innerHTML,
+                    updated_by: myName,
+                    updated_at: new Date()
+                }, { onConflict: 'room_name' });
+            }, 1000);
+        });
+
+        // SPLIT SCREEN LOGIC
+        function showFriendAction(name, content) {
+            const pane = document.getElementById('friendPane');
+            const friendContent = document.getElementById('friendContent');
+            const friendLabel = document.getElementById('friendName');
+            
+            pane.classList.add('active');
+            friendLabel.innerText = name + " is typing...";
+            friendContent.innerHTML = content;
+
+            // Auto-hide split screen after 10 seconds of inactivity
+            clearTimeout(window.splitTimeout);
+            window.splitTimeout = setTimeout(() => {
+                pane.classList.remove('active');
+            }, 10000);
+        }
+
+        // PLUS MENU TOOLS
+        function togglePlusMenu() { document.getElementById('plusMenu').classList.toggle('show'); }
+        
+        function insertCodeBlock() {
+            const code = prompt("Paste your code here:");
+            if(!code) return;
+            const block = `
+                <div class="code-block" contenteditable="false">
+                    <div class="code-header"><span>CODE</span><span class="copy-btn" onclick="copyCode(this)">Copy</span></div>
+                    <div class="code-content">${code}</div>
+                </div><p><br></p>`;
+            document.execCommand('insertHTML', false, block);
+            togglePlusMenu();
+        }
+
+        function triggerImageUpload() { document.getElementById('imgInput').click(); }
+        
+        document.getElementById('imgInput').onchange = (e) => {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const img = `<img src="${event.target.result}" style="max-width:100%; border-radius:10px;"><p><br></p>`;
+                document.execCommand('insertHTML', false, img);
             };
+            reader.readAsDataURL(e.target.files[0]);
+            togglePlusMenu();
+        };
 
-            function showToast(msg) {
-                const t = document.createElement('div');
-                t.className = 'toast';
-                t.innerText = msg;
-                document.getElementById('toastContainer').appendChild(t);
-                setTimeout(() => t.remove(), 3000);
+        function applyHighlight() {
+            document.execCommand('backColor', false, '#475569');
+            togglePlusMenu();
+        }
+
+        // UI HELPERS
+        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
+        
+        function copyCode(btn) {
+            const text = btn.parentElement.nextElementSibling.innerText;
+            navigator.clipboard.writeText(text);
+            btn.innerText = "Copied!";
+            setTimeout(() => btn.innerText = "Copy", 2000);
+        }
+
+        async function createNewGroup() {
+            const name = prompt("Enter new Group Name:");
+            if(name) {
+                await supabase.from('shared_notes').insert({ room_name: name, content: '', updated_by: myName });
+                loadGroups();
             }
+        }
 
-            init();
-        })();
+        async function loadGroups() {
+            const { data } = await supabase.from(CONFIG.TABLE).select('room_name');
+            const list = document.getElementById('groupList');
+            list.innerHTML = "";
+            data.forEach(g => {
+                const item = document.createElement('div');
+                item.className = `group-item ${g.room_name === currentRoom ? 'active' : ''}`;
+                item.innerText = "# " + g.room_name;
+                item.onclick = () => { joinRoom(g.room_name); loadGroups(); if(window.innerWidth < 768) toggleSidebar(); };
+                list.appendChild(item);
+            });
+        }
+
+        init();
     </script>
 </body>
 </html>
