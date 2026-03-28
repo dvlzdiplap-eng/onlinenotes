@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nepal Real-time Collab</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { margin: 0; font-family: sans-serif; display: flex; flex-direction: column; height: 100vh; }
+        header { background: #333; color: white; padding: 10px; display: flex; justify-content: space-between; }
+        .main-container { display: flex; flex: 1; overflow: hidden; }
+        
+        /* Split Screen */
+        .editor-section, .preview-section { flex: 1; display: flex; flex-direction: column; border: 1px solid #ccc; }
+        textarea { flex: 1; padding: 15px; font-family: 'Courier New', monospace; font-size: 16px; border: none; outline: none; resize: none; }
+        iframe { flex: 1; border: none; background: white; }
+        
+        .toolbar { background: #f4f4f4; padding: 5px; border-bottom: 1px solid #ddd; }
+        button { cursor: pointer; background: #007bff; color: white; border: none; padding: 5px 10px; border-radius: 3px; }
+    </style>
+</head>
+<body>
+
+<header>
+    <div id="user-info">Welcome: <span id="display-name">...</span></div>
+    <div>Room: <strong id="room-id">Global-Room</strong></div>
+</header>
+
+<div class="main-container">
+    <!-- Left Side: Code Editor -->
+    <div class="editor-section">
+        <div class="toolbar">
+            <span>CODE EDITOR (HTML/CSS)</span>
+            <button onclick="insertMedia('image')">+ Image</button>
+            <button onclick="insertMedia('video')">+ Video</button>
+        </div>
+        <textarea id="code-input" placeholder="Start typing HTML/CSS code here..."></textarea>
+    </div>
+
+    <!-- Right Side: Live Preview -->
+    <div class="preview-section">
+        <div class="toolbar">LIVE OUTPUT</div>
+        <iframe id="output-window"></iframe>
+    </div>
+</div>
+
+<script>
+    // 1. SETUP SUPABASE (You get these from supabase.com for free)
+    const SUPABASE_URL = 'https://ycnmgtdxljncunnktbef.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_ic4z42pOnv3_DNfgt4GvJg_d-E1CPVV';
+    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    const codeInput = document.getElementById('code-input');
+    const outputWindow = document.getElementById('output-window');
+    const nameDisplay = document.getElementById('display-name');
+
+    // 2. ASK FOR NAME (Stored in LocalStorage)
+    let myName = localStorage.getItem('userName') || prompt("Enter your name:");
+    localStorage.setItem('userName', myName);
+    nameDisplay.innerText = myName;
+
+    // 3. REAL-TIME SYNC LOGIC
+    const channel = supabase.channel('room-1')
+    .on('broadcast', { event: 'typing' }, (payload) => {
+        // When friend types, update my screen
+        if (payload.payload.sender !== myName) {
+            codeInput.value = payload.payload.text;
+            updatePreview();
+        }
+    })
+    .subscribe();
+
+    codeInput.addEventListener('input', () => {
+        updatePreview();
+        // Send typing data to friend
+        channel.send({
+            type: 'broadcast',
+            event: 'typing',
+            payload: { text: codeInput.value, sender: myName }
+        });
+    });
+
+    // 4. LIVE PREVIEW LOGIC
+    function updatePreview() {
+        const content = codeInput.value;
+        const iframeDoc = outputWindow.contentDocument || outputWindow.contentWindow.document;
+        iframeDoc.open();
+        iframeDoc.write(content);
+        iframeDoc.close();
+    }
+
+    // 5. MEDIA HELPERS
+    function insertMedia(type) {
+        let url = prompt(`Enter ${type} URL:`);
+        if (url) {
+            let tag = type === 'image' ? `<img src="${url}" width="100%">` : `<video src="${url}" controls width="100%"></video>`;
+            codeInput.value += `\n${tag}\n`;
+            updatePreview();
+        }
+    }
+</script>
+</body>
+</html>
