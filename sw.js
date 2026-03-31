@@ -1,5 +1,6 @@
-const STATIC_CACHE = "projectvault-static-v1";
-const DYNAMIC_CACHE = "projectvault-dynamic-v1";
+// add at top of sw.js or just change cache names
+const STATIC_CACHE = "projectvault-static-v2";
+const DYNAMIC_CACHE = "projectvault-dynamic-v2";
 
 const STATIC_ASSETS = [
   "./",
