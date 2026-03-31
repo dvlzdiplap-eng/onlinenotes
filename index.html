@@ -1,337 +1,835 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Nepal CollabNote Pro</title>
-    
-    <!-- External Dependencies -->
-    <link rel="manifest" href="manifest.json">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code&display=swap" rel="stylesheet">
-    
-    <style>
-        :root {
-            --bg: #0f172a; --sidebar: #1e293b; --accent: #6366f1;
-            --text-main: #f8fafc; --text-dim: #94a3b8; --border: #334155;
-            --glass: rgba(30, 41, 59, 0.7); --danger: #ef4444; --success: #22c55e;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ProjectVault Pro</title>
+  <meta name="theme-color" content="#4f46e5" />
+  <link rel="manifest" href="manifest.json" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root{
+      --bg:#07111f;
+      --panel:#0f172a;
+      --panel2:#111c34;
+      --line:#22304d;
+      --text:#eef4ff;
+      --muted:#8ea4c8;
+      --accent:#4f46e5;
+      --accent2:#22d3ee;
+      --danger:#ef4444;
+      --ok:#22c55e;
+      --card:rgba(15,23,42,.82);
+      --shadow:0 20px 50px rgba(0,0,0,.35);
+      --radius:22px;
+    }
 
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; scrollbar-width: thin; }
-        body { margin: 0; font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text-main); display: flex; height: 100vh; overflow: hidden; }
+    *{box-sizing:border-box}
+    html,body{margin:0;height:100%;font-family:Inter,Arial,sans-serif;background:
+      radial-gradient(circle at top right, rgba(34,211,238,.12), transparent 22%),
+      radial-gradient(circle at left, rgba(79,70,229,.18), transparent 18%),
+      linear-gradient(180deg,#050b16,#091325 45%,#09111e);
+      color:var(--text)}
+    body{min-height:100vh}
 
-        /* --- AUTH & SETUP OVERLAY --- */
-        #authOverlay { position: fixed; inset: 0; background: var(--bg); z-index: 9999; display: none; align-items: center; justify-content: center; backdrop-filter: blur(10px); }
-        .auth-card { background: var(--sidebar); padding: 40px; border-radius: 20px; border: 1px solid var(--border); width: 90%; max-width: 400px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
-        .auth-title { font-size: 1.5rem; font-weight: 700; margin-bottom: 10px; text-align: center; }
-        .input-group { margin-bottom: 20px; }
-        .input-group label { display: block; font-size: 0.8rem; color: var(--text-dim); margin-bottom: 8px; }
-        .pro-input { width: 100%; padding: 12px; background: #0b0f1a; border: 1px solid var(--border); border-radius: 8px; color: white; outline: none; }
-        .pro-input:focus { border-color: var(--accent); }
-        .pro-btn { width: 100%; padding: 12px; background: var(--accent); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.3s; }
-        .pro-btn:hover { opacity: 0.9; transform: translateY(-2px); }
+    .app{display:grid;grid-template-columns:300px 1fr;min-height:100vh}
+    .sidebar{
+      border-right:1px solid var(--line);
+      background:rgba(8,15,28,.82);
+      backdrop-filter:blur(18px);
+      padding:22px;
+      position:sticky;
+      top:0;
+      height:100vh;
+    }
+    .brand{
+      display:flex;align-items:center;gap:12px;margin-bottom:18px
+    }
+    .logo{
+      width:48px;height:48px;border-radius:16px;
+      background:linear-gradient(135deg,var(--accent),var(--accent2));
+      display:flex;align-items:center;justify-content:center;
+      font-weight:800;font-size:18px;box-shadow:var(--shadow)
+    }
+    .brand h1{font-size:1.05rem;margin:0}
+    .brand p{margin:2px 0 0;color:var(--muted);font-size:.82rem}
 
-        /* --- SIDEBAR --- */
-        .sidebar { width: 300px; background: var(--sidebar); border-right: 1px solid var(--border); display: flex; flex-direction: column; transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
-        .sidebar-header { padding: 25px; border-bottom: 1px solid var(--border); }
-        .user-profile { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
-        .avatar { width: 40px; height: 40px; background: var(--accent); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: 700; }
-        
-        .nav-section { flex: 1; overflow-y: auto; padding: 20px; }
-        .section-title { font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 15px; display: flex; justify-content: space-between; }
-        .group-item { padding: 12px 15px; border-radius: 10px; cursor: pointer; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; color: var(--text-dim); transition: 0.2s; }
-        .group-item:hover, .group-item.active { background: rgba(99, 102, 241, 0.1); color: var(--accent); }
-        .group-item.active { background: var(--accent); color: white; }
+    .profile{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:20px;
+      padding:16px;
+      margin:18px 0;
+    }
+    .profile .top{display:flex;gap:12px;align-items:center}
+    .avatar{
+      width:46px;height:46px;border-radius:14px;
+      background:linear-gradient(135deg,#312e81,#0ea5e9);
+      display:flex;align-items:center;justify-content:center;
+      font-weight:800
+    }
+    .profile-name{font-weight:700}
+    .profile-email{color:var(--muted);font-size:.83rem;word-break:break-all}
 
-        /* --- MAIN WORKSPACE --- */
-        .workspace { flex: 1; display: flex; flex-direction: column; position: relative; min-width: 0; }
-        .top-bar { height: 70px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 30px; background: var(--glass); }
-        .room-meta h2 { margin: 0; font-size: 1.2rem; }
-        .sync-badge { font-size: 11px; padding: 4px 10px; border-radius: 20px; border: 1px solid #22c55e; color: #22c55e; }
+    .side-btn,.ghost-btn,.danger-btn,.primary-btn{
+      width:100%;border:none;cursor:pointer;border-radius:14px;
+      padding:12px 14px;font-weight:700;transition:.2s
+    }
+    .primary-btn{
+      background:linear-gradient(135deg,var(--accent),#06b6d4);
+      color:white
+    }
+    .ghost-btn,.side-btn{
+      background:#0b1427;color:var(--text);border:1px solid var(--line)
+    }
+    .danger-btn{
+      background:#2a1016;color:#ffc9d1;border:1px solid #58212c
+    }
+    .primary-btn:hover,.ghost-btn:hover,.side-btn:hover,.danger-btn:hover{transform:translateY(-1px)}
 
-        .editor-container { flex: 1; display: flex; overflow: hidden; position: relative; }
-        .editor-main { flex: 1; overflow-y: auto; padding: 40px 60px; line-height: 1.7; outline: none; font-size: 1.1rem; color: #cbd5e1; }
-        .editor-main:empty:before { content: "Click the + button to add blocks or start typing..."; color: #475569; }
+    .side-actions{display:grid;gap:10px;margin-top:14px}
 
-        /* Split Screen (Friend's View) */
-        .collab-pane { width: 0; background: #0a0f1d; border-left: 1px solid var(--border); overflow-y: auto; transition: 0.5s; position: relative; }
-        .collab-pane.active { width: 40%; }
-        .collab-header { padding: 15px; background: rgba(0,0,0,0.2); font-size: 12px; color: var(--accent); position: sticky; top: 0; }
-        .collab-content { padding: 20px; opacity: 0.6; pointer-events: none; }
+    .main{
+      padding:24px;
+      min-width:0;
+    }
 
-        /* --- BLOCKS --- */
-        .code-block { background: #000; border-radius: 12px; margin: 25px 0; border: 1px solid var(--border); position: relative; overflow: hidden; }
-        .code-header { background: #1a1a1a; padding: 8px 15px; font-family: 'Fira Code', monospace; font-size: 11px; color: #666; display: flex; justify-content: space-between; }
-        .copy-btn { color: var(--accent); cursor: pointer; font-weight: 600; }
-        .code-area { padding: 20px; font-family: 'Fira Code', monospace; font-size: 14px; color: #94a3b8; white-space: pre-wrap; }
-        
-        img { max-width: 100%; border-radius: 12px; margin: 20px 0; border: 1px solid var(--border); }
-        .highlight { background: rgba(99, 102, 241, 0.3); padding: 2px 5px; border-radius: 4px; }
+    .topbar{
+      display:flex;justify-content:space-between;gap:14px;align-items:center;
+      margin-bottom:20px
+    }
+    .topbar-left h2{margin:0;font-size:1.4rem}
+    .topbar-left p{margin:5px 0 0;color:var(--muted)}
+    .topbar-right{
+      display:flex;gap:10px;flex-wrap:wrap
+    }
 
-        /* --- FLOATING ACTION BUTTON --- */
-        .fab-root { position: fixed; bottom: 35px; right: 35px; z-index: 1000; }
-        .fab-main { width: 60px; height: 60px; border-radius: 50%; background: var(--accent); border: none; color: white; font-size: 28px; cursor: pointer; box-shadow: 0 10px 30px rgba(99, 102, 241, 0.4); display: flex; align-items: center; justify-content: center; transition: 0.3s; }
-        .fab-main:hover { transform: scale(1.1) rotate(90deg); }
-        .fab-menu { position: absolute; bottom: 80px; right: 0; background: var(--sidebar); border: 1px solid var(--border); border-radius: 15px; width: 220px; padding: 12px; display: none; flex-direction: column; box-shadow: 0 15px 40px rgba(0,0,0,0.6); }
-        .fab-menu.active { display: flex; animation: slideUp 0.3s ease; }
-        .menu-item { padding: 12px; border-radius: 8px; cursor: pointer; font-size: 0.9rem; display: flex; align-items: center; gap: 12px; transition: 0.2s; }
-        .menu-item:hover { background: #0f172a; color: var(--accent); }
+    .search-row{
+      display:grid;grid-template-columns:1fr 180px;gap:14px;margin-bottom:20px
+    }
 
-        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        @keyframes spin { 100% { transform: rotate(360deg); } }
+    .input,.textarea,.select{
+      width:100%;
+      border-radius:16px;
+      border:1px solid var(--line);
+      background:#0b1427;
+      color:var(--text);
+      outline:none;
+      padding:14px 15px;
+    }
+    .textarea{min-height:120px;resize:vertical}
+    .input:focus,.textarea:focus,.select:focus{
+      border-color:#4f46e5;
+      box-shadow:0 0 0 3px rgba(79,70,229,.18)
+    }
 
-        /* --- MOBILE LAYOUT --- */
-        @media (max-width: 768px) {
-            .sidebar { position: fixed; left: -300px; z-index: 2000; height: 100%; box-shadow: 20px 0 50px rgba(0,0,0,0.5); }
-            .sidebar.open { left: 0; }
-            .editor-main { padding: 25px; }
-            .collab-pane.active { position: fixed; right: 0; width: 100%; height: 30%; bottom: 0; z-index: 1500; }
-            .top-bar { padding: 0 15px; }
-            .menu-btn { display: block !important; }
-        }
-    </style>
+    .stats{
+      display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px
+    }
+    .stat{
+      background:var(--card);border:1px solid var(--line);border-radius:20px;padding:18px
+    }
+    .stat .k{font-size:.82rem;color:var(--muted)}
+    .stat .v{font-size:1.5rem;font-weight:800;margin-top:8px}
+
+    .projects-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
+      gap:16px;
+    }
+
+    .card{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:22px;
+      overflow:hidden;
+      box-shadow:var(--shadow);
+      display:flex;flex-direction:column;
+      min-height:280px
+    }
+    .thumb{
+      height:150px;
+      background:
+        linear-gradient(135deg,rgba(79,70,229,.35),rgba(34,211,238,.25)),
+        #0b1427 center/cover no-repeat;
+      border-bottom:1px solid var(--line);
+      display:flex;align-items:center;justify-content:center;
+      font-size:2rem;font-weight:800;color:white
+    }
+    .card-body{padding:16px;display:grid;gap:10px}
+    .title-row{
+      display:flex;justify-content:space-between;gap:10px;align-items:start
+    }
+    .card-title{margin:0;font-size:1.02rem}
+    .badge{
+      padding:6px 10px;border-radius:999px;font-size:.72rem;font-weight:800;
+      text-transform:uppercase;border:1px solid var(--line);white-space:nowrap
+    }
+    .badge.draft{background:#1b2236;color:#cdd8ee}
+    .badge.live{background:#0d2b20;color:#9ff0c2}
+    .badge.archived{background:#2f2210;color:#ffd39c}
+    .desc{color:var(--muted);font-size:.9rem;line-height:1.45;min-height:40px}
+    .meta{font-size:.8rem;color:var(--muted)}
+    .card-actions{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+    .mini-btn{
+      border:none;border-radius:12px;padding:10px 8px;cursor:pointer;
+      background:#0b1427;color:var(--text);border:1px solid var(--line);font-weight:700
+    }
+    .mini-btn:hover{background:#101a31}
+    .mini-btn.delete{color:#ffb4bf;border-color:#552531;background:#241017}
+
+    .empty{
+      border:1px dashed var(--line);
+      border-radius:24px;
+      padding:40px 24px;
+      text-align:center;
+      color:var(--muted);
+      background:rgba(11,20,39,.45)
+    }
+
+    .modal{
+      position:fixed;inset:0;background:rgba(2,8,20,.7);
+      backdrop-filter:blur(8px);
+      display:none;align-items:center;justify-content:center;z-index:1000;
+      padding:20px
+    }
+    .modal.open{display:flex}
+    .modal-card{
+      width:min(920px,100%);
+      max-height:92vh;
+      overflow:auto;
+      background:#0b1326;
+      border:1px solid var(--line);
+      border-radius:26px;
+      box-shadow:var(--shadow);
+      padding:20px;
+    }
+
+    .modal-head{
+      display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:14px
+    }
+    .modal-head h3{margin:0}
+    .xbtn{
+      width:40px;height:40px;border-radius:12px;border:1px solid var(--line);
+      background:#0f1a31;color:white;cursor:pointer;font-size:20px
+    }
+
+    .form-grid{
+      display:grid;grid-template-columns:1fr 1fr;gap:14px
+    }
+    .full{grid-column:1/-1}
+    .code-grid{
+      display:grid;grid-template-columns:1fr;gap:14px;margin-top:12px
+    }
+
+    .auth-wrap{
+      min-height:100vh;
+      display:flex;align-items:center;justify-content:center;padding:24px
+    }
+    .auth-card{
+      width:min(460px,100%);
+      background:rgba(8,15,28,.88);
+      border:1px solid var(--line);
+      border-radius:28px;
+      padding:24px;
+      box-shadow:var(--shadow)
+    }
+    .tabs{
+      display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px
+    }
+    .tab{
+      padding:12px;border-radius:14px;border:1px solid var(--line);
+      background:#0b1427;color:var(--text);cursor:pointer;font-weight:800
+    }
+    .tab.active{background:linear-gradient(135deg,var(--accent),#06b6d4)}
+    .auth-title{margin:0 0 8px;font-size:1.45rem}
+    .auth-sub{margin:0 0 18px;color:var(--muted)}
+    .auth-actions{display:grid;gap:10px;margin-top:12px}
+    .msg{
+      margin-top:14px;padding:12px 14px;border-radius:14px;font-size:.92rem;
+      display:none
+    }
+    .msg.show{display:block}
+    .msg.ok{background:#10271b;color:#bbf7d0;border:1px solid #224d33}
+    .msg.err{background:#2a1016;color:#fecdd3;border:1px solid #5c1f2f}
+
+    .mobile-menu{display:none}
+
+    @media (max-width: 900px){
+      .app{grid-template-columns:1fr}
+      .sidebar{
+        position:fixed;left:-320px;z-index:999;width:300px;transition:.25s
+      }
+      .sidebar.open{left:0}
+      .mobile-menu{display:inline-block}
+      .stats{grid-template-columns:1fr}
+      .search-row,.form-grid{grid-template-columns:1fr}
+      .topbar{align-items:flex-start;flex-direction:column}
+      .topbar-right{width:100%}
+      .topbar-right button{flex:1}
+    }
+  </style>
 </head>
 <body>
+  <div id="authScreen" class="auth-wrap">
+    <div class="auth-card">
+      <div class="tabs">
+        <button class="tab active" id="loginTab">Login</button>
+        <button class="tab" id="registerTab">Register</button>
+      </div>
 
-    <!-- AUTH SECTION -->
-    <div id="authOverlay">
-        <div class="auth-card">
-            <div class="auth-title">Nepal Collab Pro</div>
-            <p style="text-align: center; color: var(--text-dim); font-size: 0.85rem; margin-bottom: 30px;">Initialize your professional profile</p>
-            <div class="input-group">
-                <label>Display Name</label>
-                <input type="text" id="setupName" class="pro-input" placeholder="e.g., Arun_Swoyambhu">
-            </div>
-            <div class="input-group">
-                <label>Recovery Key (Favorite Name)</label>
-                <input type="password" id="setupKey" class="pro-input" placeholder="Secret word for login">
-            </div>
-            <button class="pro-btn" onclick="saveProfile()">Start Writing</button>
-        </div>
+      <h1 class="auth-title">ProjectVault Pro</h1>
+      <p class="auth-sub">Save website projects and access them later from web or APK.</p>
+
+      <div id="registerNameWrap" style="display:none;margin-bottom:12px;">
+        <input class="input" id="displayName" placeholder="Display name" />
+      </div>
+
+      <div style="display:grid;gap:12px;">
+        <input class="input" id="email" type="email" placeholder="Email address" />
+        <input class="input" id="password" type="password" placeholder="Password" />
+      </div>
+
+      <div class="auth-actions">
+        <button class="primary-btn" id="authBtn">Login</button>
+      </div>
+
+      <div class="msg" id="authMsg"></div>
     </div>
+  </div>
 
-    <!-- SIDEBAR -->
-    <aside class="sidebar" id="mainSidebar">
-        <div class="sidebar-header">
-            <div class="user-profile">
-                <div class="avatar" id="userInitial">?</div>
-                <div>
-                    <div style="font-weight: 600; font-size: 0.9rem;" id="uName">Guest</div>
-                    <div style="font-size: 0.7rem; color: var(--text-dim);">Profile Active</div>
-                </div>
-            </div>
+  <div id="appScreen" style="display:none;">
+    <div class="app">
+      <aside class="sidebar" id="sidebar">
+        <div class="brand">
+          <div class="logo">PV</div>
+          <div>
+            <h1>ProjectVault Pro</h1>
+            <p>Your website project locker</p>
+          </div>
         </div>
-        <div class="nav-section">
-            <div class="section-title">
-                Permanent Groups
-                <button onclick="createGroup()" style="background:none; border:none; color:var(--accent); cursor:pointer;">+</button>
-            </div>
-            <div id="groupList">
-                <!-- Loaded Dynamically -->
-            </div>
-        </div>
-        <div style="padding: 20px; border-top: 1px solid var(--border);">
-            <button class="pro-btn" style="background: #1e293b; border: 1px solid var(--border);" onclick="copyInvite()">Invite Collaborator</button>
-        </div>
-    </aside>
 
-    <!-- WORKSPACE -->
-    <main class="workspace">
-        <header class="top-bar">
-            <div style="display:flex; align-items:center; gap:15px;">
-                <button class="menu-btn" onclick="toggleSidebar()" style="display:none; background:none; border:none; color:white; font-size:24px;">☰</button>
-                <div class="room-meta">
-                    <h2 id="activeRoomName"># General</h2>
-                </div>
+        <div class="profile">
+          <div class="top">
+            <div class="avatar" id="avatarBox">U</div>
+            <div style="min-width:0">
+              <div class="profile-name" id="profileName">User</div>
+              <div class="profile-email" id="profileEmail">email</div>
             </div>
-            <div id="syncStatus" class="sync-badge">CONNECTED</div>
-        </header>
+          </div>
 
-        <div class="editor-container">
-            <!-- ME -->
-            <div class="editor-main" id="editor" contenteditable="true" spellcheck="false"></div>
-            
-            <!-- FRIEND (SPLIT SCREEN) -->
-            <div class="collab-pane" id="splitPane">
-                <div class="collab-header">
-                    <span id="friendName">... is typing</span>
-                </div>
-                <div class="collab-content" id="friendView"></div>
-            </div>
+          <div class="side-actions">
+            <button class="side-btn" id="newProjectBtnSide">+ New Project</button>
+            <button class="ghost-btn" id="refreshBtn">Refresh</button>
+            <button class="danger-btn" id="logoutBtn">Logout</button>
+          </div>
         </div>
-    </main>
+      </aside>
 
-    <!-- FAB -->
-    <div class="fab-root">
-        <div class="fab-menu" id="plusMenu">
-            <div class="menu-item" onclick="addCodeBlock()"><span>💻</span> Add Code Block</div>
-            <div class="menu-item" onclick="document.getElementById('fileInp').click()"><span>🖼️</span> Upload Media</div>
-            <div class="menu-item" onclick="applyTextFormat('highlight')"><span>🖍️</span> Highlight Text</div>
-            <div class="menu-item" onclick="applyTextFormat('bold')"><span><b>B</b></span> Make Bold</div>
+      <main class="main">
+        <div class="topbar">
+          <div class="topbar-left">
+            <button class="ghost-btn mobile-menu" id="menuBtn" style="width:auto;padding:10px 14px;margin-bottom:10px;">☰ Menu</button>
+            <h2>Your Projects</h2>
+            <p>Everything you save is linked to your own account.</p>
+          </div>
+          <div class="topbar-right">
+            <button class="ghost-btn" id="installBtn" style="display:none;">Install App</button>
+            <button class="primary-btn" id="newProjectBtnTop">+ New Project</button>
+          </div>
         </div>
-        <button class="fab-main" onclick="toggleFAB()">+</button>
+
+        <div class="search-row">
+          <input class="input" id="searchInput" placeholder="Search projects by title or description..." />
+          <select class="select" id="statusFilter">
+            <option value="all">All status</option>
+            <option value="draft">Draft</option>
+            <option value="live">Live</option>
+            <option value="archived">Archived</option>
+          </select>
+        </div>
+
+        <div class="stats">
+          <div class="stat">
+            <div class="k">Total Projects</div>
+            <div class="v" id="statTotal">0</div>
+          </div>
+          <div class="stat">
+            <div class="k">Live Projects</div>
+            <div class="v" id="statLive">0</div>
+          </div>
+          <div class="stat">
+            <div class="k">Draft Projects</div>
+            <div class="v" id="statDraft">0</div>
+          </div>
+        </div>
+
+        <div id="projectsWrap">
+          <div class="empty">Loading projects...</div>
+        </div>
+      </main>
     </div>
+  </div>
 
-    <input type="file" id="fileInp" hidden accept="image/*,video/*">
+  <div class="modal" id="projectModal">
+    <div class="modal-card">
+      <div class="modal-head">
+        <h3 id="modalTitle">New Project</h3>
+        <button class="xbtn" id="closeModalBtn">×</button>
+      </div>
 
-    <script>
-        // 1. CONFIG & DB
-        const CONFIG = {
-            URL: 'https://ycnmgtdxljncunnktbef.supabase.co',
-            KEY: 'sb_publishable_ic4z42pOnv3_DNfgt4GvJg_d-E1CPVV',
-            TABLE: 'shared_notes'
-        };
-        const sb = supabase.createClient(CONFIG.URL, CONFIG.KEY);
+      <div class="form-grid">
+        <div>
+          <label>Project Title</label>
+          <input class="input" id="projectTitle" placeholder="My portfolio site" />
+        </div>
+        <div>
+          <label>Slug</label>
+          <input class="input" id="projectSlug" placeholder="my-portfolio-site" />
+        </div>
 
-        // 2. STATE
-        let USER = JSON.parse(localStorage.getItem('pro_profile'));
-        let ROOM = new URLSearchParams(window.location.search).get('room') || 'General';
-        let syncTimer;
+        <div class="full">
+          <label>Description</label>
+          <textarea class="textarea" id="projectDescription" placeholder="Short description..."></textarea>
+        </div>
 
-        // 3. AUTH LOGIC
-        function checkProfile() {
-            if(!USER) {
-                document.getElementById('authOverlay').style.display = 'flex';
-            } else {
-                initApp();
-            }
+        <div>
+          <label>Website URL</label>
+          <input class="input" id="projectWebsiteUrl" placeholder="https://example.com" />
+        </div>
+        <div>
+          <label>Thumbnail URL</label>
+          <input class="input" id="projectThumbUrl" placeholder="https://example.com/thumb.jpg" />
+        </div>
+
+        <div>
+          <label>Status</label>
+          <select class="select" id="projectStatus">
+            <option value="draft">Draft</option>
+            <option value="live">Live</option>
+            <option value="archived">Archived</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="code-grid">
+        <div>
+          <label>HTML Code</label>
+          <textarea class="textarea" id="projectHtml" placeholder="<html>..."></textarea>
+        </div>
+        <div>
+          <label>CSS Code</label>
+          <textarea class="textarea" id="projectCss" placeholder="body { ... }"></textarea>
+        </div>
+        <div>
+          <label>JS Code</label>
+          <textarea class="textarea" id="projectJs" placeholder="console.log('hello')"></textarea>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:16px;flex-wrap:wrap">
+        <button class="ghost-btn" id="cancelProjectBtn" style="width:auto;">Cancel</button>
+        <button class="primary-btn" id="saveProjectBtn" style="width:auto;">Save Project</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = "https://rcswsdhviqzkqwwhfleb.supabase.co";
+    const SUPABASE_ANON_KEY = "sb_publishable_ScNtWlnOAAm-srxWqqjP3Q_88jjxuUu";
+    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    let authMode = "login";
+    let currentUser = null;
+    let currentProfile = null;
+    let projects = [];
+    let editingProjectId = null;
+    let deferredPrompt = null;
+
+    const authScreen = document.getElementById("authScreen");
+    const appScreen = document.getElementById("appScreen");
+    const authMsg = document.getElementById("authMsg");
+    const registerNameWrap = document.getElementById("registerNameWrap");
+    const authBtn = document.getElementById("authBtn");
+    const loginTab = document.getElementById("loginTab");
+    const registerTab = document.getElementById("registerTab");
+    const sidebar = document.getElementById("sidebar");
+    const projectModal = document.getElementById("projectModal");
+
+    function showMsg(text, type="ok"){
+      authMsg.textContent = text;
+      authMsg.className = "msg show " + (type === "ok" ? "ok" : "err");
+    }
+
+    function clearMsg(){
+      authMsg.className = "msg";
+      authMsg.textContent = "";
+    }
+
+    function setAuthMode(mode){
+      authMode = mode;
+      clearMsg();
+      if(mode === "login"){
+        loginTab.classList.add("active");
+        registerTab.classList.remove("active");
+        registerNameWrap.style.display = "none";
+        authBtn.textContent = "Login";
+      } else {
+        registerTab.classList.add("active");
+        loginTab.classList.remove("active");
+        registerNameWrap.style.display = "block";
+        authBtn.textContent = "Register";
+      }
+    }
+
+    loginTab.onclick = () => setAuthMode("login");
+    registerTab.onclick = () => setAuthMode("register");
+
+    async function handleAuth(){
+      clearMsg();
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value.trim();
+      const displayName = document.getElementById("displayName").value.trim();
+
+      if(!email || !password){
+        showMsg("Email and password required.", "err");
+        return;
+      }
+
+      if(authMode === "register"){
+        if(!displayName){
+          showMsg("Display name required.", "err");
+          return;
         }
 
-        function saveProfile() {
-            const name = document.getElementById('setupName').value;
-            const key = document.getElementById('setupKey').value;
-            if(name && key) {
-                USER = { name, key };
-                localStorage.setItem('pro_profile', JSON.stringify(USER));
-                location.reload();
-            }
-        }
-
-        // 4. GROUP MANAGEMENT
-        async function loadGroups() {
-            const { data } = await sb.from(CONFIG.TABLE).select('room_name');
-            const list = document.getElementById('groupList');
-            list.innerHTML = "";
-            data.forEach(g => {
-                const div = document.createElement('div');
-                div.className = `group-item ${g.room_name === ROOM ? 'active' : ''}`;
-                div.innerHTML = `<span># ${g.room_name}</span>`;
-                div.onclick = () => switchRoom(g.room_name);
-                list.appendChild(div);
-            });
-        }
-
-        async function createGroup() {
-            const name = prompt("Enter Permanent Group Name:");
-            if(name) {
-                const cleanName = name.replace(/\s+/g, '_');
-                await sb.from(CONFIG.TABLE).insert({ room_name: cleanName, content: '', updated_by: USER.name });
-                switchRoom(cleanName);
-            }
-        }
-
-        function switchRoom(name) {
-            window.location.search = `?room=${name}`;
-        }
-
-        // 5. EDITOR & REALTIME
-        async function initApp() {
-            document.getElementById('uName').innerText = USER.name;
-            document.getElementById('userInitial').innerText = USER.name[0].toUpperCase();
-            document.getElementById('activeRoomName').innerText = "# " + ROOM;
-            
-            loadGroups();
-
-            // Load Initial Content
-            const { data } = await sb.from(CONFIG.TABLE).select('content').eq('room_name', ROOM).single();
-            if(data) document.getElementById('editor').innerHTML = data.content;
-
-            // Subscribe to remote changes
-            sb.channel(ROOM)
-            .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: CONFIG.TABLE, filter: `room_name=eq.${ROOM}` }, payload => {
-                if(payload.new.updated_by !== USER.name) {
-                    updateSplitScreen(payload.new.updated_by, payload.new.content);
-                }
-            }).subscribe();
-        }
-
-        // Syncing (Debounced)
-        document.getElementById('editor').addEventListener('input', () => {
-            document.getElementById('syncStatus').innerText = "SYNCING...";
-            document.getElementById('syncStatus').style.color = "var(--accent)";
-            
-            clearTimeout(syncTimer);
-            syncTimer = setTimeout(async () => {
-                await sb.from(CONFIG.TABLE).upsert({
-                    room_name: ROOM,
-                    content: document.getElementById('editor').innerHTML,
-                    updated_by: USER.name,
-                    updated_at: new Date()
-                });
-                document.getElementById('syncStatus').innerText = "CONNECTED";
-                document.getElementById('syncStatus').style.color = "#22c55e";
-            }, 1500);
+        const { data, error } = await sb.auth.signUp({
+          email,
+          password
         });
 
-        // 6. UI INTERACTIONS
-        function toggleSidebar() { document.getElementById('mainSidebar').classList.toggle('open'); }
-        function toggleFAB() { document.getElementById('plusMenu').classList.toggle('active'); }
-
-        function updateSplitScreen(name, content) {
-            const pane = document.getElementById('splitPane');
-            document.getElementById('friendName').innerText = `${name} is collaborating...`;
-            document.getElementById('friendView').innerHTML = content;
-            pane.classList.add('active');
-            
-            clearTimeout(window.splitHide);
-            window.splitHide = setTimeout(() => pane.classList.remove('active'), 8000);
+        if(error){
+          showMsg(error.message, "err");
+          return;
         }
 
-        function copyInvite() {
-            const url = window.location.href;
-            navigator.clipboard.writeText(url);
-            alert("Invite link copied! Send it to your friend.");
+        if(data.user){
+          const { error: pErr } = await sb
+            .from("profiles")
+            .upsert({
+              id: data.user.id,
+              email: data.user.email,
+              display_name: displayName
+            });
+
+          if(pErr){
+            showMsg(pErr.message, "err");
+            return;
+          }
         }
 
-        // 7. BLOCK ACTIONS
-        function addCodeBlock() {
-            const code = prompt("Paste your code snippet:");
-            if(!code) return;
-            const html = `
-                <div class="code-block" contenteditable="false">
-                    <div class="code-header"><span>SOURCE CODE</span><span class="copy-btn" onclick="copyCode(this)">COPY</span></div>
-                    <div class="code-area">${code}</div>
-                </div><p><br></p>`;
-            document.execCommand('insertHTML', false, html);
-            toggleFAB();
-        }
+        showMsg("Registered. If email confirmation is enabled in Supabase, confirm email first, then login.");
+        setAuthMode("login");
+        return;
+      }
 
-        function applyTextFormat(type) {
-            if(type === 'highlight') document.execCommand('backColor', false, '#4f46e5');
-            else document.execCommand(type, false, null);
-            toggleFAB();
-        }
+      const { error } = await sb.auth.signInWithPassword({ email, password });
+      if(error){
+        showMsg(error.message, "err");
+        return;
+      }
+    }
 
-        document.getElementById('fileInp').onchange = (e) => {
-            const file = e.target.files[0];
-            const reader = new FileReader();
-            reader.onload = (ev) => {
-                const tag = `<img src="${ev.target.result}"><p><br></p>`;
-                document.execCommand('insertHTML', false, tag);
-                toggleFAB();
-            }
-            reader.readAsDataURL(file);
-        };
+    authBtn.onclick = handleAuth;
 
-        function copyCode(btn) {
-            const txt = btn.parentElement.nextElementSibling.innerText;
-            navigator.clipboard.writeText(txt);
-            btn.innerText = "COPIED!";
-            setTimeout(() => btn.innerText = "COPY", 2000);
-        }
+    async function boot(){
+      const { data } = await sb.auth.getSession();
+      if(data.session?.user){
+        currentUser = data.session.user;
+        await enterApp();
+      } else {
+        authScreen.style.display = "flex";
+        appScreen.style.display = "none";
+      }
+    }
 
-        // Init
-        checkProfile();
-    </script>
+    sb.auth.onAuthStateChange(async (event, session) => {
+      currentUser = session?.user || null;
+      if(currentUser){
+        await enterApp();
+      } else {
+        authScreen.style.display = "flex";
+        appScreen.style.display = "none";
+      }
+    });
+
+    async function enterApp(){
+      authScreen.style.display = "none";
+      appScreen.style.display = "block";
+      await loadProfile();
+      await loadProjects();
+    }
+
+    async function loadProfile(){
+      const { data, error } = await sb
+        .from("profiles")
+        .select("*")
+        .eq("id", currentUser.id)
+        .single();
+
+      if(error && error.code !== "PGRST116"){
+        console.error(error);
+      }
+
+      currentProfile = data || {
+        display_name: currentUser.email?.split("@")[0] || "User",
+        email: currentUser.email
+      };
+
+      if(!data){
+        await sb.from("profiles").upsert({
+          id: currentUser.id,
+          email: currentUser.email,
+          display_name: currentProfile.display_name
+        });
+      }
+
+      document.getElementById("profileName").textContent = currentProfile.display_name || "User";
+      document.getElementById("profileEmail").textContent = currentUser.email || "";
+      document.getElementById("avatarBox").textContent = (currentProfile.display_name || "U")[0].toUpperCase();
+    }
+
+    async function loadProjects(){
+      const { data, error } = await sb
+        .from("projects")
+        .select("*")
+        .order("updated_at", { ascending: false });
+
+      if(error){
+        document.getElementById("projectsWrap").innerHTML = `<div class="empty">Failed to load projects: ${escapeHtml(error.message)}</div>`;
+        return;
+      }
+
+      projects = data || [];
+      renderProjects();
+      updateStats();
+    }
+
+    function updateStats(){
+      document.getElementById("statTotal").textContent = projects.length;
+      document.getElementById("statLive").textContent = projects.filter(p => p.status === "live").length;
+      document.getElementById("statDraft").textContent = projects.filter(p => p.status === "draft").length;
+    }
+
+    function renderProjects(){
+      const q = document.getElementById("searchInput").value.trim().toLowerCase();
+      const status = document.getElementById("statusFilter").value;
+      let filtered = [...projects];
+
+      if(q){
+        filtered = filtered.filter(p =>
+          (p.title || "").toLowerCase().includes(q) ||
+          (p.description || "").toLowerCase().includes(q)
+        );
+      }
+
+      if(status !== "all"){
+        filtered = filtered.filter(p => p.status === status);
+      }
+
+      const wrap = document.getElementById("projectsWrap");
+
+      if(!filtered.length){
+        wrap.innerHTML = `<div class="empty">No projects found.</div>`;
+        return;
+      }
+
+      wrap.innerHTML = `<div class="projects-grid">${
+        filtered.map(project => `
+          <div class="card">
+            <div class="thumb" style="${project.thumbnail_url ? `background-image:linear-gradient(135deg,rgba(79,70,229,.18),rgba(34,211,238,.15)),url('${escapeAttr(project.thumbnail_url)}');` : ''}">
+              ${project.thumbnail_url ? '' : escapeHtml(getInitials(project.title))}
+            </div>
+            <div class="card-body">
+              <div class="title-row">
+                <h3 class="card-title">${escapeHtml(project.title)}</h3>
+                <span class="badge ${escapeHtml(project.status)}">${escapeHtml(project.status || "draft")}</span>
+              </div>
+              <div class="desc">${escapeHtml(project.description || "No description")}</div>
+              <div class="meta">Updated: ${formatDate(project.updated_at)}</div>
+              <div class="card-actions">
+                <button class="mini-btn" onclick="openProjectModal('${project.id}')">Edit</button>
+                <button class="mini-btn" onclick="openWebsite('${escapeJs(project.website_url || '')}')">Open</button>
+                <button class="mini-btn delete" onclick="deleteProject('${project.id}')">Delete</button>
+              </div>
+            </div>
+          </div>
+        `).join("")
+      }</div>`;
+    }
+
+    function getInitials(text="P"){
+      return text.split(" ").map(x => x[0]).join("").slice(0,2).toUpperCase() || "PV";
+    }
+
+    function formatDate(value){
+      if(!value) return "-";
+      const d = new Date(value);
+      return d.toLocaleString();
+    }
+
+    function openWebsite(url){
+      if(!url){
+        alert("No website URL saved for this project.");
+        return;
+      }
+      window.open(url, "_blank");
+    }
+
+    function escapeHtml(str=""){
+      return String(str)
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
+    }
+
+    function escapeAttr(str=""){
+      return String(str).replaceAll('"',"&quot;");
+    }
+
+    function escapeJs(str=""){
+      return String(str).replaceAll("\\","\\\\").replaceAll("'","\\'");
+    }
+
+    function slugify(text){
+      return text.toLowerCase().trim()
+        .replace(/[^a-z0-9\s-]/g, "")
+        .replace(/\s+/g, "-")
+        .replace(/-+/g, "-");
+    }
+
+    function fillProjectForm(project=null){
+      editingProjectId = project?.id || null;
+      document.getElementById("modalTitle").textContent = project ? "Edit Project" : "New Project";
+      document.getElementById("projectTitle").value = project?.title || "";
+      document.getElementById("projectSlug").value = project?.slug || "";
+      document.getElementById("projectDescription").value = project?.description || "";
+      document.getElementById("projectWebsiteUrl").value = project?.website_url || "";
+      document.getElementById("projectThumbUrl").value = project?.thumbnail_url || "";
+      document.getElementById("projectStatus").value = project?.status || "draft";
+      document.getElementById("projectHtml").value = project?.html_code || "";
+      document.getElementById("projectCss").value = project?.css_code || "";
+      document.getElementById("projectJs").value = project?.js_code || "";
+    }
+
+    window.openProjectModal = function(projectId=null){
+      const project = projectId ? projects.find(p => p.id === projectId) : null;
+      fillProjectForm(project || null);
+      projectModal.classList.add("open");
+    }
+
+    function closeProjectModal(){
+      projectModal.classList.remove("open");
+    }
+
+    document.getElementById("closeModalBtn").onclick = closeProjectModal;
+    document.getElementById("cancelProjectBtn").onclick = closeProjectModal;
+    document.getElementById("newProjectBtnTop").onclick = () => openProjectModal();
+    document.getElementById("newProjectBtnSide").onclick = () => openProjectModal();
+
+    document.getElementById("projectTitle").addEventListener("input", (e) => {
+      const slugEl = document.getElementById("projectSlug");
+      if(!slugEl.dataset.edited || slugEl.value.trim() === ""){
+        slugEl.value = slugify(e.target.value);
+      }
+    });
+
+    document.getElementById("projectSlug").addEventListener("input", (e) => {
+      e.target.dataset.edited = "1";
+    });
+
+    document.getElementById("saveProjectBtn").onclick = async () => {
+      const title = document.getElementById("projectTitle").value.trim();
+      if(!title){
+        alert("Project title required.");
+        return;
+      }
+
+      const payload = {
+        user_id: currentUser.id,
+        title,
+        slug: document.getElementById("projectSlug").value.trim() || slugify(title),
+        description: document.getElementById("projectDescription").value.trim(),
+        website_url: document.getElementById("projectWebsiteUrl").value.trim(),
+        thumbnail_url: document.getElementById("projectThumbUrl").value.trim(),
+        status: document.getElementById("projectStatus").value,
+        html_code: document.getElementById("projectHtml").value,
+        css_code: document.getElementById("projectCss").value,
+        js_code: document.getElementById("projectJs").value
+      };
+
+      let res;
+      if(editingProjectId){
+        res = await sb.from("projects").update(payload).eq("id", editingProjectId);
+      } else {
+        res = await sb.from("projects").insert(payload);
+      }
+
+      if(res.error){
+        alert(res.error.message);
+        return;
+      }
+
+      closeProjectModal();
+      await loadProjects();
+    };
+
+    window.deleteProject = async function(projectId){
+      if(!confirm("Delete this project?")) return;
+      const { error } = await sb.from("projects").delete().eq("id", projectId);
+      if(error){
+        alert(error.message);
+        return;
+      }
+      await loadProjects();
+    }
+
+    document.getElementById("logoutBtn").onclick = async () => {
+      await sb.auth.signOut();
+    };
+
+    document.getElementById("refreshBtn").onclick = loadProjects;
+    document.getElementById("searchInput").addEventListener("input", renderProjects);
+    document.getElementById("statusFilter").addEventListener("change", renderProjects);
+
+    document.getElementById("menuBtn").onclick = () => sidebar.classList.toggle("open");
+
+    window.addEventListener("click", (e) => {
+      if(e.target === projectModal) closeProjectModal();
+    });
+
+    window.addEventListener("beforeinstallprompt", (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      document.getElementById("installBtn").style.display = "inline-block";
+    });
+
+    document.getElementById("installBtn").onclick = async () => {
+      if(!deferredPrompt) return;
+      deferredPrompt.prompt();
+      await deferredPrompt.userChoice;
+      deferredPrompt = null;
+      document.getElementById("installBtn").style.display = "none";
+    };
+
+    if("serviceWorker" in navigator){
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("./sw.js").catch(console.error);
+      });
+    }
+
+    boot();
+  </script>
 </body>
 </html>
