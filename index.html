@@ -4,229 +4,150 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ProjectVault Pro</title>
-  <meta name="theme-color" content="#4f46e5" />
+  <meta name="theme-color" content="#0b0f14" />
   <link rel="manifest" href="manifest.json" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     :root{
-      --bg:#07111f;
-      --line:#22304d;
-      --text:#eef4ff;
-      --muted:#8ea4c8;
-      --accent:#4f46e5;
-      --accent2:#22d3ee;
-      --card:rgba(15,23,42,.82);
-      --shadow:0 20px 50px rgba(0,0,0,.35);
+      --bg:#05070a;
+      --panel:rgba(10,14,20,.82);
+      --panel-2:rgba(15,20,28,.9);
+      --line:rgba(255,255,255,.08);
+      --text:#f3f7ff;
+      --muted:#a5b0c2;
+      --accent:#48b7ff;
+      --accent-2:#7d5cff;
+      --danger:#ff5d73;
+      --ok:#27d17f;
+      --shadow:0 18px 50px rgba(0,0,0,.45);
+      --radius:22px;
     }
 
     *{box-sizing:border-box}
-    html,body{
-      margin:0;
-      height:100%;
-      font-family:Inter,Arial,sans-serif;
+    html,body{margin:0;min-height:100%;font-family:Inter,Arial,sans-serif;color:var(--text)}
+    body{
       background:
-        radial-gradient(circle at top right, rgba(34,211,238,.12), transparent 22%),
-        radial-gradient(circle at left, rgba(79,70,229,.18), transparent 18%),
-        linear-gradient(180deg,#050b16,#091325 45%,#09111e);
-      color:var(--text)
+        linear-gradient(rgba(0,0,0,.7),rgba(0,0,0,.78)),
+        url("https://res.cloudinary.com/dqy6ontyx/image/upload/v1774434449/bmw-m3-angel-eyes-black-background-5k-5000x3000-896_gp5jkp.jpg")
+        center center / cover fixed no-repeat;
+      position:relative;
+      overflow-x:hidden;
     }
-    body{min-height:100vh}
+    body::before{
+      content:"";
+      position:fixed;
+      inset:0;
+      background:
+        radial-gradient(circle at top right, rgba(72,183,255,.16), transparent 22%),
+        radial-gradient(circle at bottom left, rgba(125,92,255,.15), transparent 22%);
+      pointer-events:none;
+      z-index:0;
+    }
 
-    .app{display:grid;grid-template-columns:300px 1fr;min-height:100vh}
-    .sidebar{
-      border-right:1px solid var(--line);
-      background:rgba(8,15,28,.82);
-      backdrop-filter:blur(18px);
-      padding:22px;
-      position:sticky;
-      top:0;
-      height:100vh;
+    .auth-wrap,
+    #appScreen{
+      position:relative;
+      z-index:1;
     }
-    .brand{display:flex;align-items:center;gap:12px;margin-bottom:18px}
-    .logo{
-      width:48px;height:48px;border-radius:16px;
-      background:linear-gradient(135deg,var(--accent),var(--accent2));
-      display:flex;align-items:center;justify-content:center;
-      font-weight:800;font-size:18px;box-shadow:var(--shadow)
-    }
-    .brand h1{font-size:1.05rem;margin:0}
-    .brand p{margin:2px 0 0;color:var(--muted);font-size:.82rem}
 
-    .profile{
-      background:var(--card);
+    button,
+    input,
+    textarea{
+      font:inherit;
+    }
+
+    button{
+      cursor:pointer;
+      pointer-events:auto;
+    }
+
+    .auth-wrap{
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:24px;
+    }
+    .auth-card{
+      width:min(460px,100%);
+      background:var(--panel);
+      backdrop-filter:blur(16px);
       border:1px solid var(--line);
-      border-radius:20px;
-      padding:16px;
-      margin:18px 0;
+      border-radius:28px;
+      padding:24px;
+      box-shadow:var(--shadow);
     }
-    .profile .top{display:flex;gap:12px;align-items:center}
-    .avatar{
-      width:46px;height:46px;border-radius:14px;
-      background:linear-gradient(135deg,#312e81,#0ea5e9);
-      display:flex;align-items:center;justify-content:center;
-      font-weight:800
+    .tabs{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:10px;
+      margin-bottom:16px;
     }
-    .profile-name{font-weight:700}
-    .profile-email{color:var(--muted);font-size:.83rem;word-break:break-all}
-
-    .side-btn,.ghost-btn,.danger-btn,.primary-btn,.mini-btn{
-      border:none;cursor:pointer;border-radius:14px;
-      padding:12px 14px;font-weight:700;transition:.2s
+    .tab,.btn,.mini-btn,.ghost-btn,.danger-btn,.install-btn{
+      border:none;
+      border-radius:16px;
+      padding:13px 15px;
+      font-weight:700;
+      transition:.2s ease;
     }
-    .side-btn,.ghost-btn,.mini-btn{
-      background:#0b1427;color:var(--text);border:1px solid var(--line)
+    .tab{
+      background:#0f151d;
+      color:var(--text);
+      border:1px solid var(--line);
     }
-    .primary-btn{
-      background:linear-gradient(135deg,var(--accent),#06b6d4);
-      color:white
+    .tab.active{
+      background:linear-gradient(135deg,var(--accent-2),var(--accent));
+      color:white;
+      border-color:transparent;
     }
-    .danger-btn{
-      background:#2a1016;color:#ffc9d1;border:1px solid #58212c
-    }
-    .side-btn,.ghost-btn,.danger-btn,.primary-btn{width:100%}
-    .mini-btn:hover,.primary-btn:hover,.ghost-btn:hover,.side-btn:hover,.danger-btn:hover{transform:translateY(-1px)}
-
-    .side-actions{display:grid;gap:10px;margin-top:14px}
-
-    .main{padding:24px;min-width:0}
-    .topbar{
-      display:flex;justify-content:space-between;gap:14px;align-items:center;
-      margin-bottom:20px
-    }
-    .topbar-left h2{margin:0;font-size:1.4rem}
-    .topbar-left p{margin:5px 0 0;color:var(--muted)}
-    .topbar-right{display:flex;gap:10px;flex-wrap:wrap}
-
-    .search-row{
-      display:grid;grid-template-columns:1fr;
-      gap:14px;margin-bottom:20px
-    }
-
+    .auth-title{margin:0 0 8px;font-size:1.6rem}
+    .auth-sub{margin:0 0 18px;color:var(--muted)}
+    .field{display:grid;gap:8px;margin-bottom:14px}
+    .field label{font-size:.9rem;color:#dbe5f5}
     .input,.textarea{
       width:100%;
       border-radius:16px;
       border:1px solid var(--line);
-      background:#0b1427;
+      background:rgba(9,13,18,.88);
       color:var(--text);
       outline:none;
       padding:14px 15px;
     }
-    .textarea{min-height:120px;resize:vertical}
+    .textarea{
+      min-height:120px;
+      resize:vertical;
+    }
     .input:focus,.textarea:focus{
-      border-color:#4f46e5;
-      box-shadow:0 0 0 3px rgba(79,70,229,.18)
+      border-color:rgba(72,183,255,.65);
+      box-shadow:0 0 0 3px rgba(72,183,255,.14);
     }
-
-    .stats{
-      display:grid;grid-template-columns:repeat(3,1fr);
-      gap:14px;margin-bottom:20px
+    .btn{
+      width:100%;
+      background:linear-gradient(135deg,var(--accent-2),var(--accent));
+      color:white;
+      box-shadow:0 12px 30px rgba(72,183,255,.2);
     }
-    .stat{
-      background:var(--card);
-      border:1px solid var(--line);
-      border-radius:20px;
-      padding:18px
+    .btn:hover,.mini-btn:hover,.ghost-btn:hover,.danger-btn:hover,.install-btn:hover,.tab:hover{
+      transform:translateY(-1px);
     }
-    .stat .k{font-size:.82rem;color:var(--muted)}
-    .stat .v{font-size:1.5rem;font-weight:800;margin-top:8px}
-
-    .projects-grid{
-      display:grid;
-      grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
-      gap:16px;
-    }
-
-    .card{
-      background:var(--card);
-      border:1px solid var(--line);
-      border-radius:22px;
-      overflow:hidden;
-      box-shadow:var(--shadow);
-      display:flex;flex-direction:column;
-    }
-    .thumb{
-      height:120px;
-      background:linear-gradient(135deg,rgba(79,70,229,.35),rgba(34,211,238,.25)), #0b1427;
-      border-bottom:1px solid var(--line);
-      display:flex;align-items:center;justify-content:center;
-      font-size:2rem;font-weight:800;color:white
-    }
-    .card-body{padding:16px;display:grid;gap:10px}
-    .card-title{margin:0;font-size:1.02rem}
-    .desc{color:var(--muted);font-size:.9rem;line-height:1.45;min-height:40px}
-    .meta{font-size:.8rem;color:var(--muted);word-break:break-word}
-    .card-actions{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
-    .mini-btn.delete{color:#ffb4bf;border-color:#552531;background:#241017}
-
-    .empty{
-      border:1px dashed var(--line);
-      border-radius:24px;
-      padding:40px 24px;
-      text-align:center;
-      color:var(--muted);
-      background:rgba(11,20,39,.45)
-    }
-
-    .modal{
-      position:fixed;inset:0;background:rgba(2,8,20,.7);
-      backdrop-filter:blur(8px);
-      display:none;align-items:center;justify-content:center;z-index:1000;
-      padding:20px
-    }
-    .modal.open{display:flex}
-    .modal-card{
-      width:min(650px,100%);
-      max-height:92vh;
-      overflow:auto;
-      background:#0b1326;
-      border:1px solid var(--line);
-      border-radius:26px;
-      box-shadow:var(--shadow);
-      padding:20px;
-    }
-
-    .modal-head{
-      display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:14px
-    }
-    .modal-head h3{margin:0}
-    .xbtn{
-      width:40px;height:40px;border-radius:12px;border:1px solid var(--line);
-      background:#0f1a31;color:white;cursor:pointer;font-size:20px
-    }
-
-    .form-grid{display:grid;grid-template-columns:1fr;gap:14px}
-
-    .auth-wrap{
-      min-height:100vh;
-      display:flex;align-items:center;justify-content:center;padding:24px
-    }
-    .auth-card{
-      width:min(460px,100%);
-      background:rgba(8,15,28,.88);
-      border:1px solid var(--line);
-      border-radius:28px;
-      padding:24px;
-      box-shadow:var(--shadow)
-    }
-    .tabs{
-      display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px
-    }
-    .tab{
-      padding:12px;border-radius:14px;border:1px solid var(--line);
-      background:#0b1427;color:var(--text);cursor:pointer;font-weight:800
-    }
-    .tab.active{background:linear-gradient(135deg,var(--accent),#06b6d4)}
-    .auth-title{margin:0 0 8px;font-size:1.45rem}
-    .auth-sub{margin:0 0 18px;color:var(--muted)}
-    .auth-actions{display:grid;gap:10px;margin-top:12px}
     .msg{
-      margin-top:14px;padding:12px 14px;border-radius:14px;font-size:.92rem;
-      display:none
+      display:none;
+      margin-top:14px;
+      padding:12px 14px;
+      border-radius:14px;
+      font-size:.92rem;
     }
     .msg.show{display:block}
-    .msg.ok{background:#10271b;color:#bbf7d0;border:1px solid #224d33}
-    .msg.err{background:#2a1016;color:#fecdd3;border:1px solid #5c1f2f}
-
+    .msg.ok{
+      background:#10271b;
+      color:#bbf7d0;
+      border:1px solid #224d33;
+    }
+    .msg.err{
+      background:#2a1016;
+      color:#fecdd3;
+      border:1px solid #5c1f2f;
+    }
     .credit{
       margin-top:14px;
       color:var(--muted);
@@ -234,19 +155,373 @@
       text-align:right;
     }
 
-    .mobile-menu{display:none}
+    .app{
+      display:grid;
+      grid-template-columns:300px 1fr;
+      min-height:100vh;
+    }
 
-    @media (max-width: 900px){
-      .app{grid-template-columns:1fr}
-      .sidebar{
-        position:fixed;left:-320px;z-index:999;width:300px;transition:.25s
+    .sidebar{
+      position:sticky;
+      top:0;
+      height:100vh;
+      padding:22px;
+      background:rgba(8,11,16,.82);
+      backdrop-filter:blur(16px);
+      border-right:1px solid var(--line);
+      z-index:20;
+    }
+
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      margin-bottom:20px;
+    }
+    .logo{
+      width:52px;
+      height:52px;
+      border-radius:18px;
+      background:linear-gradient(135deg,var(--accent-2),var(--accent));
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:19px;
+      font-weight:800;
+      box-shadow:0 12px 28px rgba(72,183,255,.18);
+    }
+    .brand h1{
+      margin:0;
+      font-size:1.08rem;
+    }
+    .brand p{
+      margin:4px 0 0;
+      font-size:.84rem;
+      color:var(--muted);
+    }
+
+    .profile{
+      background:var(--panel-2);
+      border:1px solid var(--line);
+      border-radius:22px;
+      padding:16px;
+      margin-bottom:16px;
+      box-shadow:var(--shadow);
+    }
+    .profile-top{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      margin-bottom:14px;
+    }
+    .avatar{
+      width:48px;
+      height:48px;
+      border-radius:16px;
+      background:linear-gradient(135deg,#141b25,var(--accent));
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-weight:800;
+      color:white;
+      flex-shrink:0;
+    }
+    .profile-name{
+      font-weight:700;
+      word-break:break-word;
+    }
+    .profile-email{
+      color:var(--muted);
+      font-size:.82rem;
+      word-break:break-all;
+    }
+
+    .sidebar-actions{
+      display:grid;
+      gap:10px;
+    }
+
+    .ghost-btn,.danger-btn,.install-btn{
+      background:#0f151d;
+      color:var(--text);
+      border:1px solid var(--line);
+      width:100%;
+    }
+    .danger-btn{
+      background:rgba(75,14,23,.55);
+      color:#ffd4db;
+      border-color:rgba(255,93,115,.22);
+    }
+
+    .main{
+      padding:28px;
+      min-width:0;
+      position:relative;
+      z-index:1;
+    }
+
+    .hero{
+      background:rgba(7,10,15,.72);
+      border:1px solid var(--line);
+      border-radius:28px;
+      padding:22px;
+      backdrop-filter:blur(14px);
+      box-shadow:var(--shadow);
+      margin-bottom:18px;
+    }
+    .topbar{
+      display:flex;
+      justify-content:space-between;
+      gap:16px;
+      align-items:flex-start;
+    }
+    .topbar-left h2{
+      margin:0;
+      font-size:1.55rem;
+    }
+    .topbar-left p{
+      margin:6px 0 0;
+      color:var(--muted);
+    }
+    .topbar-right{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+
+    .toolbar{
+      display:grid;
+      grid-template-columns:1fr auto auto;
+      gap:14px;
+      margin-top:18px;
+    }
+
+    .stats{
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:14px;
+      margin-bottom:18px;
+    }
+    .stat{
+      background:rgba(10,14,20,.74);
+      border:1px solid var(--line);
+      border-radius:22px;
+      padding:18px;
+      backdrop-filter:blur(10px);
+      box-shadow:var(--shadow);
+    }
+    .stat .k{
+      color:var(--muted);
+      font-size:.82rem;
+    }
+    .stat .v{
+      margin-top:8px;
+      font-size:1.55rem;
+      font-weight:800;
+    }
+
+    .projects-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fill,minmax(290px,1fr));
+      gap:16px;
+    }
+
+    .card{
+      background:rgba(8,12,18,.82);
+      border:1px solid var(--line);
+      border-radius:24px;
+      overflow:hidden;
+      box-shadow:var(--shadow);
+      backdrop-filter:blur(12px);
+      display:flex;
+      flex-direction:column;
+      min-height:290px;
+    }
+    .thumb{
+      height:130px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:2rem;
+      font-weight:800;
+      color:white;
+      letter-spacing:.04em;
+      background:
+        linear-gradient(135deg, rgba(125,92,255,.72), rgba(72,183,255,.55)),
+        rgba(0,0,0,.5);
+      border-bottom:1px solid var(--line);
+    }
+    .card-body{
+      padding:16px;
+      display:grid;
+      gap:10px;
+    }
+    .card-title{
+      margin:0;
+      font-size:1.08rem;
+      word-break:break-word;
+    }
+    .desc{
+      color:var(--muted);
+      line-height:1.5;
+      min-height:48px;
+      word-break:break-word;
+    }
+    .meta{
+      color:#d8e1ef;
+      font-size:.84rem;
+      word-break:break-word;
+      opacity:.86;
+    }
+    .meta a{
+      color:#8fd7ff;
+      text-decoration:none;
+      word-break:break-all;
+    }
+    .card-actions{
+      display:grid;
+      grid-template-columns:1fr 1fr 1fr;
+      gap:8px;
+      margin-top:4px;
+    }
+    .mini-btn{
+      background:#111823;
+      color:var(--text);
+      border:1px solid var(--line);
+      padding:11px 10px;
+    }
+    .mini-btn.delete{
+      background:rgba(75,14,23,.55);
+      color:#ffd4db;
+      border-color:rgba(255,93,115,.22);
+    }
+
+    .empty{
+      border:1px dashed rgba(255,255,255,.12);
+      border-radius:26px;
+      padding:42px 24px;
+      background:rgba(7,10,15,.7);
+      text-align:center;
+      color:var(--muted);
+      backdrop-filter:blur(12px);
+    }
+
+    .modal{
+      position:fixed;
+      inset:0;
+      display:none;
+      align-items:center;
+      justify-content:center;
+      background:rgba(0,0,0,.62);
+      backdrop-filter:blur(8px);
+      z-index:99999;
+      padding:18px;
+    }
+    .modal.open{
+      display:flex;
+    }
+    .modal-card{
+      width:min(660px,100%);
+      max-height:90vh;
+      overflow:auto;
+      background:rgba(8,12,18,.95);
+      border:1px solid var(--line);
+      border-radius:28px;
+      padding:20px;
+      box-shadow:0 25px 70px rgba(0,0,0,.55);
+      position:relative;
+      z-index:100000;
+      pointer-events:auto;
+    }
+    .modal-head{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+      margin-bottom:14px;
+    }
+    .modal-head h3{
+      margin:0;
+      font-size:1.25rem;
+    }
+    .xbtn{
+      width:42px;
+      height:42px;
+      border:none;
+      border-radius:14px;
+      background:#141b25;
+      color:white;
+      border:1px solid var(--line);
+      font-size:20px;
+      flex-shrink:0;
+    }
+    .form-grid{
+      display:grid;
+      gap:14px;
+    }
+    .actions{
+      display:flex;
+      justify-content:flex-end;
+      gap:10px;
+      margin-top:16px;
+      flex-wrap:wrap;
+    }
+    .actions .ghost-btn,
+    .actions .btn{
+      width:auto;
+      min-width:120px;
+    }
+
+    .mobile-menu{
+      display:none;
+    }
+
+    @media (max-width: 980px){
+      .app{
+        grid-template-columns:1fr;
       }
-      .sidebar.open{left:0}
-      .mobile-menu{display:inline-block}
-      .stats{grid-template-columns:1fr}
-      .topbar{align-items:flex-start;flex-direction:column}
-      .topbar-right{width:100%}
-      .topbar-right button{flex:1}
+      .sidebar{
+        position:fixed;
+        left:-320px;
+        width:300px;
+        transition:.25s ease;
+      }
+      .sidebar.open{
+        left:0;
+      }
+      .mobile-menu{
+        display:inline-flex;
+      }
+      .topbar{
+        flex-direction:column;
+      }
+      .topbar-right{
+        width:100%;
+      }
+      .topbar-right .btn,
+      .topbar-right .install-btn{
+        flex:1;
+        width:auto;
+      }
+      .toolbar{
+        grid-template-columns:1fr;
+      }
+      .stats{
+        grid-template-columns:1fr;
+      }
+    }
+
+    @media (max-width: 640px){
+      .main{
+        padding:18px;
+      }
+      .hero{
+        padding:18px;
+      }
+      .card-actions{
+        grid-template-columns:1fr;
+      }
     }
   </style>
 </head>
@@ -254,26 +529,29 @@
   <div id="authScreen" class="auth-wrap">
     <div class="auth-card">
       <div class="tabs">
-        <button class="tab active" id="loginTab">Login</button>
-        <button class="tab" id="registerTab">Register</button>
+        <button type="button" class="tab active" id="loginTab">Login</button>
+        <button type="button" class="tab" id="registerTab">Register</button>
       </div>
 
       <h1 class="auth-title">ProjectVault Pro</h1>
       <p class="auth-sub">Save website projects and access them later from web or APK.</p>
 
-      <div id="registerNameWrap" style="display:none;margin-bottom:12px;">
+      <div id="registerNameWrap" class="field" style="display:none;">
+        <label for="displayName">Display Name</label>
         <input class="input" id="displayName" placeholder="Display name" />
       </div>
 
-      <div style="display:grid;gap:12px;">
+      <div class="field">
+        <label for="email">Email</label>
         <input class="input" id="email" type="email" placeholder="Email address" />
+      </div>
+
+      <div class="field">
+        <label for="password">Password</label>
         <input class="input" id="password" type="password" placeholder="Password" />
       </div>
 
-      <div class="auth-actions">
-        <button class="primary-btn" id="authBtn">Login</button>
-      </div>
-
+      <button type="button" class="btn" id="authBtn">Login</button>
       <div class="msg" id="authMsg"></div>
       <div class="credit">created by diplap</div>
     </div>
@@ -291,18 +569,18 @@
         </div>
 
         <div class="profile">
-          <div class="top">
+          <div class="profile-top">
             <div class="avatar" id="avatarBox">U</div>
-            <div style="min-width:0">
+            <div>
               <div class="profile-name" id="profileName">User</div>
               <div class="profile-email" id="profileEmail">email</div>
             </div>
           </div>
 
-          <div class="side-actions">
-            <button class="side-btn" id="newProjectBtnSide">+ New Project</button>
-            <button class="ghost-btn" id="refreshBtn">Refresh</button>
-            <button class="danger-btn" id="logoutBtn">Logout</button>
+          <div class="sidebar-actions">
+            <button type="button" class="ghost-btn" id="newProjectBtnSide">+ New Project</button>
+            <button type="button" class="ghost-btn" id="refreshBtn">Refresh</button>
+            <button type="button" class="danger-btn" id="logoutBtn">Logout</button>
           </div>
         </div>
 
@@ -310,23 +588,28 @@
       </aside>
 
       <main class="main">
-        <div class="topbar">
-          <div class="topbar-left">
-            <button class="ghost-btn mobile-menu" id="menuBtn" style="width:auto;padding:10px 14px;margin-bottom:10px;">☰ Menu</button>
-            <h2>Your Projects</h2>
-            <p>Only project name, description, and URL are saved.</p>
-          </div>
-          <div class="topbar-right">
-            <button class="ghost-btn" id="installBtn" style="display:none;">Install App</button>
-            <button class="primary-btn" id="newProjectBtnTop">+ New Project</button>
-          </div>
-        </div>
+        <section class="hero">
+          <div class="topbar">
+            <div class="topbar-left">
+              <button type="button" class="ghost-btn mobile-menu" id="menuBtn" style="width:auto;padding:10px 14px;margin-bottom:12px;">☰ Menu</button>
+              <h2>Your Projects</h2>
+              <p>Only project name, description, and URL are saved.</p>
+            </div>
 
-        <div class="search-row">
-          <input class="input" id="searchInput" placeholder="Search by name, description or URL..." />
-        </div>
+            <div class="topbar-right">
+              <button type="button" class="install-btn" id="installBtn" style="display:none;">Install App</button>
+              <button type="button" class="btn" id="newProjectBtnTop" style="width:auto;">+ New Project</button>
+            </div>
+          </div>
 
-        <div class="stats">
+          <div class="toolbar">
+            <input class="input" id="searchInput" placeholder="Search by name, description or URL..." />
+            <button type="button" class="ghost-btn" id="clearSearchBtn" style="width:auto;">Clear</button>
+            <button type="button" class="ghost-btn" id="closeSidebarBtn" style="width:auto;display:none;">Close Menu</button>
+          </div>
+        </section>
+
+        <section class="stats">
           <div class="stat">
             <div class="k">Total Projects</div>
             <div class="v" id="statTotal">0</div>
@@ -339,7 +622,7 @@
             <div class="k">Missing URL</div>
             <div class="v" id="statDraft">0</div>
           </div>
-        </div>
+        </section>
 
         <div id="projectsWrap">
           <div class="empty">Loading projects...</div>
@@ -348,33 +631,33 @@
     </div>
   </div>
 
-  <div class="modal" id="projectModal">
+  <div class="modal" id="projectModal" aria-hidden="true">
     <div class="modal-card">
       <div class="modal-head">
         <h3 id="modalTitle">New Project</h3>
-        <button class="xbtn" id="closeModalBtn">×</button>
+        <button type="button" class="xbtn" id="closeModalBtn">×</button>
       </div>
 
       <div class="form-grid">
-        <div>
-          <label>Project Name</label>
+        <div class="field">
+          <label for="projectTitle">Project Name</label>
           <input class="input" id="projectTitle" placeholder="My website project" />
         </div>
 
-        <div>
-          <label>Description</label>
+        <div class="field">
+          <label for="projectDescription">Description</label>
           <textarea class="textarea" id="projectDescription" placeholder="Short project description..."></textarea>
         </div>
 
-        <div>
-          <label>Project URL</label>
+        <div class="field">
+          <label for="projectWebsiteUrl">Project URL</label>
           <input class="input" id="projectWebsiteUrl" placeholder="https://example.com" />
         </div>
       </div>
 
-      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:16px;flex-wrap:wrap">
-        <button class="ghost-btn" id="cancelProjectBtn" style="width:auto;">Cancel</button>
-        <button class="primary-btn" id="saveProjectBtn" style="width:auto;">Save Project</button>
+      <div class="actions">
+        <button type="button" class="ghost-btn" id="cancelProjectBtn">Cancel</button>
+        <button type="button" class="btn" id="saveProjectBtn">Save Project</button>
       </div>
 
       <div class="credit">created by diplap</div>
@@ -392,6 +675,7 @@
     let projects = [];
     let editingProjectId = null;
     let deferredPrompt = null;
+    let isSaving = false;
 
     const authScreen = document.getElementById("authScreen");
     const appScreen = document.getElementById("appScreen");
@@ -402,6 +686,8 @@
     const registerTab = document.getElementById("registerTab");
     const sidebar = document.getElementById("sidebar");
     const projectModal = document.getElementById("projectModal");
+    const saveProjectBtn = document.getElementById("saveProjectBtn");
+    const logoutBtn = document.getElementById("logoutBtn");
 
     function showMsg(text, type="ok"){
       authMsg.textContent = text;
@@ -416,6 +702,7 @@
     function setAuthMode(mode){
       authMode = mode;
       clearMsg();
+
       if(mode === "login"){
         loginTab.classList.add("active");
         registerTab.classList.remove("active");
@@ -424,16 +711,17 @@
       } else {
         registerTab.classList.add("active");
         loginTab.classList.remove("active");
-        registerNameWrap.style.display = "block";
+        registerNameWrap.style.display = "grid";
         authBtn.textContent = "Register";
       }
     }
 
-    loginTab.onclick = () => setAuthMode("login");
-    registerTab.onclick = () => setAuthMode("register");
+    loginTab.addEventListener("click", () => setAuthMode("login"));
+    registerTab.addEventListener("click", () => setAuthMode("register"));
 
     async function handleAuth(){
       clearMsg();
+
       const email = document.getElementById("email").value.trim();
       const password = document.getElementById("password").value.trim();
       const displayName = document.getElementById("displayName").value.trim();
@@ -443,44 +731,47 @@
         return;
       }
 
-      if(authMode === "register"){
-        if(!displayName){
-          showMsg("Display name required.", "err");
-          return;
-        }
+      authBtn.disabled = true;
+      authBtn.style.opacity = ".7";
 
-        const { data, error } = await sb.auth.signUp({ email, password });
-
-        if(error){
-          showMsg(error.message, "err");
-          return;
-        }
-
-        if(data.user){
-          const { error: pErr } = await sb.from("profiles").upsert({
-            id: data.user.id,
-            email: data.user.email,
-            display_name: displayName
-          });
-
-          if(pErr){
-            showMsg(pErr.message, "err");
+      try{
+        if(authMode === "register"){
+          if(!displayName){
+            showMsg("Display name required.", "err");
             return;
           }
+
+          const { data, error } = await sb.auth.signUp({ email, password });
+
+          if(error) throw error;
+
+          if(data.user){
+            const { error: pErr } = await sb.from("profiles").upsert({
+              id: data.user.id,
+              email: data.user.email,
+              display_name: displayName
+            });
+
+            if(pErr) throw pErr;
+          }
+
+          showMsg("Registered. Login now.");
+          setAuthMode("login");
+          return;
         }
 
-        showMsg("Registered. Login now.");
-        setAuthMode("login");
-        return;
-      }
+        const { error } = await sb.auth.signInWithPassword({ email, password });
+        if(error) throw error;
 
-      const { error } = await sb.auth.signInWithPassword({ email, password });
-      if(error){
-        showMsg(error.message, "err");
+      } catch(err){
+        showMsg(err.message || "Something went wrong.", "err");
+      } finally {
+        authBtn.disabled = false;
+        authBtn.style.opacity = "1";
       }
     }
 
-    authBtn.onclick = handleAuth;
+    authBtn.addEventListener("click", handleAuth);
 
     async function boot(){
       const { data } = await sb.auth.getSession();
@@ -493,8 +784,9 @@
       }
     }
 
-    sb.auth.onAuthStateChange(async (event, session) => {
+    sb.auth.onAuthStateChange(async (_, session) => {
       currentUser = session?.user || null;
+
       if(currentUser){
         await enterApp();
       } else {
@@ -546,19 +838,22 @@
         .order("updated_at", { ascending: false });
 
       if(error){
-        document.getElementById("projectsWrap").innerHTML = `<div class="empty">Failed to load projects: ${escapeHtml(error.message)}</div>`;
+        document.getElementById("projectsWrap").innerHTML =
+          `<div class="empty">Failed to load projects: ${escapeHtml(error.message)}</div>`;
         return;
       }
 
       projects = data || [];
-      renderProjects();
       updateStats();
+      renderProjects();
     }
 
     function updateStats(){
       document.getElementById("statTotal").textContent = projects.length;
-      document.getElementById("statLive").textContent = projects.filter(p => (p.website_url || "").trim() !== "").length;
-      document.getElementById("statDraft").textContent = projects.filter(p => (p.website_url || "").trim() === "").length;
+      document.getElementById("statLive").textContent =
+        projects.filter(p => (p.website_url || "").trim() !== "").length;
+      document.getElementById("statDraft").textContent =
+        projects.filter(p => (p.website_url || "").trim() === "").length;
     }
 
     function renderProjects(){
@@ -580,34 +875,45 @@
         return;
       }
 
-      wrap.innerHTML = `<div class="projects-grid">${
-        filtered.map(project => `
-          <div class="card">
-            <div class="thumb">${escapeHtml(getInitials(project.title))}</div>
-            <div class="card-body">
-              <h3 class="card-title">${escapeHtml(project.title)}</h3>
-              <div class="desc">${escapeHtml(project.description || "No description")}</div>
-              <div class="meta">URL: ${escapeHtml(project.website_url || "-")}</div>
-              <div class="meta">Updated: ${formatDate(project.updated_at)}</div>
-              <div class="card-actions">
-                <button class="mini-btn" onclick="openProjectModal('${project.id}')">Edit</button>
-                <button class="mini-btn" onclick="openWebsite('${escapeJs(project.website_url || '')}')">Open</button>
-                <button class="mini-btn delete" onclick="deleteProject('${project.id}')">Delete</button>
+      wrap.innerHTML = `
+        <div class="projects-grid">
+          ${filtered.map(project => `
+            <div class="card">
+              <div class="thumb">${escapeHtml(getInitials(project.title))}</div>
+              <div class="card-body">
+                <h3 class="card-title">${escapeHtml(project.title)}</h3>
+                <div class="desc">${escapeHtml(project.description || "No description")}</div>
+                <div class="meta">
+                  URL:
+                  ${project.website_url
+                    ? `<a href="${escapeAttr(project.website_url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(project.website_url)}</a>`
+                    : "-"}
+                </div>
+                <div class="meta">Updated: ${formatDate(project.updated_at)}</div>
+                <div class="card-actions">
+                  <button type="button" class="mini-btn" onclick="openProjectModal('${project.id}')">Edit</button>
+                  <button type="button" class="mini-btn" onclick="openWebsite('${escapeJs(project.website_url || '')}')">Open</button>
+                  <button type="button" class="mini-btn delete" onclick="deleteProject('${project.id}')">Delete</button>
+                </div>
               </div>
             </div>
-          </div>
-        `).join("")
-      }</div>`;
+          `).join("")}
+        </div>
+      `;
     }
 
     function getInitials(text="P"){
-      return text.split(" ").map(x => x[0]).join("").slice(0,2).toUpperCase() || "PV";
+      return text
+        .split(" ")
+        .map(x => x[0])
+        .join("")
+        .slice(0,2)
+        .toUpperCase() || "PV";
     }
 
     function formatDate(value){
       if(!value) return "-";
-      const d = new Date(value);
-      return d.toLocaleString();
+      return new Date(value).toLocaleString();
     }
 
     function openWebsite(url){
@@ -615,7 +921,7 @@
         alert("No website URL saved for this project.");
         return;
       }
-      window.open(url, "_blank");
+      window.open(url, "_blank", "noopener,noreferrer");
     }
 
     function escapeHtml(str=""){
@@ -625,6 +931,12 @@
         .replaceAll(">","&gt;")
         .replaceAll('"',"&quot;")
         .replaceAll("'","&#039;");
+    }
+
+    function escapeAttr(str=""){
+      return String(str)
+        .replaceAll("&","&amp;")
+        .replaceAll('"',"&quot;");
     }
 
     function escapeJs(str=""){
@@ -645,18 +957,28 @@
       const project = projectId ? projects.find(p => p.id === projectId) : null;
       fillProjectForm(project || null);
       projectModal.classList.add("open");
-    }
+      projectModal.setAttribute("aria-hidden", "false");
+      document.body.style.overflow = "hidden";
+      setTimeout(() => document.getElementById("projectTitle").focus(), 30);
+    };
 
     function closeProjectModal(){
       projectModal.classList.remove("open");
+      projectModal.setAttribute("aria-hidden", "true");
+      document.body.style.overflow = "";
+      isSaving = false;
+      saveProjectBtn.disabled = false;
+      saveProjectBtn.textContent = "Save Project";
     }
 
-    document.getElementById("closeModalBtn").onclick = closeProjectModal;
-    document.getElementById("cancelProjectBtn").onclick = closeProjectModal;
-    document.getElementById("newProjectBtnTop").onclick = () => openProjectModal();
-    document.getElementById("newProjectBtnSide").onclick = () => openProjectModal();
+    document.getElementById("closeModalBtn").addEventListener("click", closeProjectModal);
+    document.getElementById("cancelProjectBtn").addEventListener("click", closeProjectModal);
+    document.getElementById("newProjectBtnTop").addEventListener("click", () => openProjectModal());
+    document.getElementById("newProjectBtnSide").addEventListener("click", () => openProjectModal());
 
-    document.getElementById("saveProjectBtn").onclick = async () => {
+    saveProjectBtn.addEventListener("click", async () => {
+      if(isSaving) return;
+
       const title = document.getElementById("projectTitle").value.trim();
       const description = document.getElementById("projectDescription").value.trim();
       const website_url = document.getElementById("projectWebsiteUrl").value.trim();
@@ -666,31 +988,41 @@
         return;
       }
 
-      const payload = {
-        user_id: currentUser.id,
-        title,
-        description,
-        website_url
-      };
+      isSaving = true;
+      saveProjectBtn.disabled = true;
+      saveProjectBtn.textContent = "Saving...";
 
-      let res;
-      if(editingProjectId){
-        res = await sb.from("projects").update(payload).eq("id", editingProjectId);
-      } else {
-        res = await sb.from("projects").insert(payload);
+      try{
+        const payload = {
+          user_id: currentUser.id,
+          title,
+          description,
+          website_url
+        };
+
+        let res;
+        if(editingProjectId){
+          res = await sb.from("projects").update(payload).eq("id", editingProjectId);
+        } else {
+          res = await sb.from("projects").insert(payload);
+        }
+
+        if(res.error) throw res.error;
+
+        closeProjectModal();
+        await loadProjects();
+
+      } catch(err){
+        alert(err.message || "Failed to save project.");
+        isSaving = false;
+        saveProjectBtn.disabled = false;
+        saveProjectBtn.textContent = "Save Project";
       }
-
-      if(res.error){
-        alert(res.error.message);
-        return;
-      }
-
-      closeProjectModal();
-      await loadProjects();
-    };
+    });
 
     window.deleteProject = async function(projectId){
       if(!confirm("Delete this project?")) return;
+
       const { error } = await sb.from("projects").delete().eq("id", projectId);
       if(error){
         alert(error.message);
@@ -699,16 +1031,42 @@
       await loadProjects();
     }
 
-    document.getElementById("logoutBtn").onclick = async () => {
-      await sb.auth.signOut();
-    };
+    logoutBtn.addEventListener("click", async () => {
+      logoutBtn.disabled = true;
+      logoutBtn.textContent = "Logging out...";
+      try{
+        const { error } = await sb.auth.signOut();
+        if(error) throw error;
+      } catch(err){
+        alert(err.message || "Logout failed.");
+        logoutBtn.disabled = false;
+        logoutBtn.textContent = "Logout";
+      }
+    });
 
-    document.getElementById("refreshBtn").onclick = loadProjects;
+    document.getElementById("refreshBtn").addEventListener("click", loadProjects);
     document.getElementById("searchInput").addEventListener("input", renderProjects);
-    document.getElementById("menuBtn").onclick = () => sidebar.classList.toggle("open");
+    document.getElementById("clearSearchBtn").addEventListener("click", () => {
+      document.getElementById("searchInput").value = "";
+      renderProjects();
+    });
+
+    document.getElementById("menuBtn").addEventListener("click", () => {
+      sidebar.classList.toggle("open");
+    });
+
+    document.getElementById("closeSidebarBtn").addEventListener("click", () => {
+      sidebar.classList.remove("open");
+    });
 
     window.addEventListener("click", (e) => {
       if(e.target === projectModal) closeProjectModal();
+    });
+
+    window.addEventListener("keydown", (e) => {
+      if(e.key === "Escape" && projectModal.classList.contains("open")){
+        closeProjectModal();
+      }
     });
 
     window.addEventListener("beforeinstallprompt", (e) => {
@@ -717,17 +1075,24 @@
       document.getElementById("installBtn").style.display = "inline-block";
     });
 
-    document.getElementById("installBtn").onclick = async () => {
+    document.getElementById("installBtn").addEventListener("click", async () => {
       if(!deferredPrompt) return;
       deferredPrompt.prompt();
       await deferredPrompt.userChoice;
       deferredPrompt = null;
       document.getElementById("installBtn").style.display = "none";
-    };
+    });
 
     if("serviceWorker" in navigator){
-      window.addEventListener("load", () => {
-        navigator.serviceWorker.register("./sw.js").catch(console.error);
+      window.addEventListener("load", async () => {
+        try{
+          const reg = await navigator.serviceWorker.register("./sw.js");
+          if(reg.waiting){
+            reg.waiting.postMessage({ type: "SKIP_WAITING" });
+          }
+        } catch(err){
+          console.error(err);
+        }
       });
     }
 
