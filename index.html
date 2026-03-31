@@ -10,26 +10,26 @@
   <style>
     :root{
       --bg:#07111f;
-      --panel:#0f172a;
-      --panel2:#111c34;
       --line:#22304d;
       --text:#eef4ff;
       --muted:#8ea4c8;
       --accent:#4f46e5;
       --accent2:#22d3ee;
-      --danger:#ef4444;
-      --ok:#22c55e;
       --card:rgba(15,23,42,.82);
       --shadow:0 20px 50px rgba(0,0,0,.35);
-      --radius:22px;
     }
 
     *{box-sizing:border-box}
-    html,body{margin:0;height:100%;font-family:Inter,Arial,sans-serif;background:
-      radial-gradient(circle at top right, rgba(34,211,238,.12), transparent 22%),
-      radial-gradient(circle at left, rgba(79,70,229,.18), transparent 18%),
-      linear-gradient(180deg,#050b16,#091325 45%,#09111e);
-      color:var(--text)}
+    html,body{
+      margin:0;
+      height:100%;
+      font-family:Inter,Arial,sans-serif;
+      background:
+        radial-gradient(circle at top right, rgba(34,211,238,.12), transparent 22%),
+        radial-gradient(circle at left, rgba(79,70,229,.18), transparent 18%),
+        linear-gradient(180deg,#050b16,#091325 45%,#09111e);
+      color:var(--text)
+    }
     body{min-height:100vh}
 
     .app{display:grid;grid-template-columns:300px 1fr;min-height:100vh}
@@ -42,9 +42,7 @@
       top:0;
       height:100vh;
     }
-    .brand{
-      display:flex;align-items:center;gap:12px;margin-bottom:18px
-    }
+    .brand{display:flex;align-items:center;gap:12px;margin-bottom:18px}
     .logo{
       width:48px;height:48px;border-radius:16px;
       background:linear-gradient(135deg,var(--accent),var(--accent2));
@@ -71,44 +69,40 @@
     .profile-name{font-weight:700}
     .profile-email{color:var(--muted);font-size:.83rem;word-break:break-all}
 
-    .side-btn,.ghost-btn,.danger-btn,.primary-btn{
-      width:100%;border:none;cursor:pointer;border-radius:14px;
+    .side-btn,.ghost-btn,.danger-btn,.primary-btn,.mini-btn{
+      border:none;cursor:pointer;border-radius:14px;
       padding:12px 14px;font-weight:700;transition:.2s
+    }
+    .side-btn,.ghost-btn,.mini-btn{
+      background:#0b1427;color:var(--text);border:1px solid var(--line)
     }
     .primary-btn{
       background:linear-gradient(135deg,var(--accent),#06b6d4);
       color:white
     }
-    .ghost-btn,.side-btn{
-      background:#0b1427;color:var(--text);border:1px solid var(--line)
-    }
     .danger-btn{
       background:#2a1016;color:#ffc9d1;border:1px solid #58212c
     }
-    .primary-btn:hover,.ghost-btn:hover,.side-btn:hover,.danger-btn:hover{transform:translateY(-1px)}
+    .side-btn,.ghost-btn,.danger-btn,.primary-btn{width:100%}
+    .mini-btn:hover,.primary-btn:hover,.ghost-btn:hover,.side-btn:hover,.danger-btn:hover{transform:translateY(-1px)}
 
     .side-actions{display:grid;gap:10px;margin-top:14px}
 
-    .main{
-      padding:24px;
-      min-width:0;
-    }
-
+    .main{padding:24px;min-width:0}
     .topbar{
       display:flex;justify-content:space-between;gap:14px;align-items:center;
       margin-bottom:20px
     }
     .topbar-left h2{margin:0;font-size:1.4rem}
     .topbar-left p{margin:5px 0 0;color:var(--muted)}
-    .topbar-right{
-      display:flex;gap:10px;flex-wrap:wrap
-    }
+    .topbar-right{display:flex;gap:10px;flex-wrap:wrap}
 
     .search-row{
-      display:grid;grid-template-columns:1fr 180px;gap:14px;margin-bottom:20px
+      display:grid;grid-template-columns:1fr;
+      gap:14px;margin-bottom:20px
     }
 
-    .input,.textarea,.select{
+    .input,.textarea{
       width:100%;
       border-radius:16px;
       border:1px solid var(--line);
@@ -118,16 +112,20 @@
       padding:14px 15px;
     }
     .textarea{min-height:120px;resize:vertical}
-    .input:focus,.textarea:focus,.select:focus{
+    .input:focus,.textarea:focus{
       border-color:#4f46e5;
       box-shadow:0 0 0 3px rgba(79,70,229,.18)
     }
 
     .stats{
-      display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px
+      display:grid;grid-template-columns:repeat(3,1fr);
+      gap:14px;margin-bottom:20px
     }
     .stat{
-      background:var(--card);border:1px solid var(--line);border-radius:20px;padding:18px
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:20px;
+      padding:18px
     }
     .stat .k{font-size:.82rem;color:var(--muted)}
     .stat .v{font-size:1.5rem;font-weight:800;margin-top:8px}
@@ -145,37 +143,19 @@
       overflow:hidden;
       box-shadow:var(--shadow);
       display:flex;flex-direction:column;
-      min-height:280px
     }
     .thumb{
-      height:150px;
-      background:
-        linear-gradient(135deg,rgba(79,70,229,.35),rgba(34,211,238,.25)),
-        #0b1427 center/cover no-repeat;
+      height:120px;
+      background:linear-gradient(135deg,rgba(79,70,229,.35),rgba(34,211,238,.25)), #0b1427;
       border-bottom:1px solid var(--line);
       display:flex;align-items:center;justify-content:center;
       font-size:2rem;font-weight:800;color:white
     }
     .card-body{padding:16px;display:grid;gap:10px}
-    .title-row{
-      display:flex;justify-content:space-between;gap:10px;align-items:start
-    }
     .card-title{margin:0;font-size:1.02rem}
-    .badge{
-      padding:6px 10px;border-radius:999px;font-size:.72rem;font-weight:800;
-      text-transform:uppercase;border:1px solid var(--line);white-space:nowrap
-    }
-    .badge.draft{background:#1b2236;color:#cdd8ee}
-    .badge.live{background:#0d2b20;color:#9ff0c2}
-    .badge.archived{background:#2f2210;color:#ffd39c}
     .desc{color:var(--muted);font-size:.9rem;line-height:1.45;min-height:40px}
-    .meta{font-size:.8rem;color:var(--muted)}
+    .meta{font-size:.8rem;color:var(--muted);word-break:break-word}
     .card-actions{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
-    .mini-btn{
-      border:none;border-radius:12px;padding:10px 8px;cursor:pointer;
-      background:#0b1427;color:var(--text);border:1px solid var(--line);font-weight:700
-    }
-    .mini-btn:hover{background:#101a31}
     .mini-btn.delete{color:#ffb4bf;border-color:#552531;background:#241017}
 
     .empty{
@@ -195,7 +175,7 @@
     }
     .modal.open{display:flex}
     .modal-card{
-      width:min(920px,100%);
+      width:min(650px,100%);
       max-height:92vh;
       overflow:auto;
       background:#0b1326;
@@ -214,13 +194,7 @@
       background:#0f1a31;color:white;cursor:pointer;font-size:20px
     }
 
-    .form-grid{
-      display:grid;grid-template-columns:1fr 1fr;gap:14px
-    }
-    .full{grid-column:1/-1}
-    .code-grid{
-      display:grid;grid-template-columns:1fr;gap:14px;margin-top:12px
-    }
+    .form-grid{display:grid;grid-template-columns:1fr;gap:14px}
 
     .auth-wrap{
       min-height:100vh;
@@ -253,6 +227,13 @@
     .msg.ok{background:#10271b;color:#bbf7d0;border:1px solid #224d33}
     .msg.err{background:#2a1016;color:#fecdd3;border:1px solid #5c1f2f}
 
+    .credit{
+      margin-top:14px;
+      color:var(--muted);
+      font-size:.85rem;
+      text-align:right;
+    }
+
     .mobile-menu{display:none}
 
     @media (max-width: 900px){
@@ -263,7 +244,6 @@
       .sidebar.open{left:0}
       .mobile-menu{display:inline-block}
       .stats{grid-template-columns:1fr}
-      .search-row,.form-grid{grid-template-columns:1fr}
       .topbar{align-items:flex-start;flex-direction:column}
       .topbar-right{width:100%}
       .topbar-right button{flex:1}
@@ -295,6 +275,7 @@
       </div>
 
       <div class="msg" id="authMsg"></div>
+      <div class="credit">created by diplap</div>
     </div>
   </div>
 
@@ -324,6 +305,8 @@
             <button class="danger-btn" id="logoutBtn">Logout</button>
           </div>
         </div>
+
+        <div class="credit">created by diplap</div>
       </aside>
 
       <main class="main">
@@ -331,7 +314,7 @@
           <div class="topbar-left">
             <button class="ghost-btn mobile-menu" id="menuBtn" style="width:auto;padding:10px 14px;margin-bottom:10px;">☰ Menu</button>
             <h2>Your Projects</h2>
-            <p>Everything you save is linked to your own account.</p>
+            <p>Only project name, description, and URL are saved.</p>
           </div>
           <div class="topbar-right">
             <button class="ghost-btn" id="installBtn" style="display:none;">Install App</button>
@@ -340,13 +323,7 @@
         </div>
 
         <div class="search-row">
-          <input class="input" id="searchInput" placeholder="Search projects by title or description..." />
-          <select class="select" id="statusFilter">
-            <option value="all">All status</option>
-            <option value="draft">Draft</option>
-            <option value="live">Live</option>
-            <option value="archived">Archived</option>
-          </select>
+          <input class="input" id="searchInput" placeholder="Search by name, description or URL..." />
         </div>
 
         <div class="stats">
@@ -355,11 +332,11 @@
             <div class="v" id="statTotal">0</div>
           </div>
           <div class="stat">
-            <div class="k">Live Projects</div>
+            <div class="k">With URL</div>
             <div class="v" id="statLive">0</div>
           </div>
           <div class="stat">
-            <div class="k">Draft Projects</div>
+            <div class="k">Missing URL</div>
             <div class="v" id="statDraft">0</div>
           </div>
         </div>
@@ -380,50 +357,18 @@
 
       <div class="form-grid">
         <div>
-          <label>Project Title</label>
-          <input class="input" id="projectTitle" placeholder="My portfolio site" />
-        </div>
-        <div>
-          <label>Slug</label>
-          <input class="input" id="projectSlug" placeholder="my-portfolio-site" />
+          <label>Project Name</label>
+          <input class="input" id="projectTitle" placeholder="My website project" />
         </div>
 
-        <div class="full">
+        <div>
           <label>Description</label>
-          <textarea class="textarea" id="projectDescription" placeholder="Short description..."></textarea>
+          <textarea class="textarea" id="projectDescription" placeholder="Short project description..."></textarea>
         </div>
 
         <div>
-          <label>Website URL</label>
+          <label>Project URL</label>
           <input class="input" id="projectWebsiteUrl" placeholder="https://example.com" />
-        </div>
-        <div>
-          <label>Thumbnail URL</label>
-          <input class="input" id="projectThumbUrl" placeholder="https://example.com/thumb.jpg" />
-        </div>
-
-        <div>
-          <label>Status</label>
-          <select class="select" id="projectStatus">
-            <option value="draft">Draft</option>
-            <option value="live">Live</option>
-            <option value="archived">Archived</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="code-grid">
-        <div>
-          <label>HTML Code</label>
-          <textarea class="textarea" id="projectHtml" placeholder="<html>..."></textarea>
-        </div>
-        <div>
-          <label>CSS Code</label>
-          <textarea class="textarea" id="projectCss" placeholder="body { ... }"></textarea>
-        </div>
-        <div>
-          <label>JS Code</label>
-          <textarea class="textarea" id="projectJs" placeholder="console.log('hello')"></textarea>
         </div>
       </div>
 
@@ -431,6 +376,8 @@
         <button class="ghost-btn" id="cancelProjectBtn" style="width:auto;">Cancel</button>
         <button class="primary-btn" id="saveProjectBtn" style="width:auto;">Save Project</button>
       </div>
+
+      <div class="credit">created by diplap</div>
     </div>
   </div>
 
@@ -502,10 +449,7 @@
           return;
         }
 
-        const { data, error } = await sb.auth.signUp({
-          email,
-          password
-        });
+        const { data, error } = await sb.auth.signUp({ email, password });
 
         if(error){
           showMsg(error.message, "err");
@@ -513,13 +457,11 @@
         }
 
         if(data.user){
-          const { error: pErr } = await sb
-            .from("profiles")
-            .upsert({
-              id: data.user.id,
-              email: data.user.email,
-              display_name: displayName
-            });
+          const { error: pErr } = await sb.from("profiles").upsert({
+            id: data.user.id,
+            email: data.user.email,
+            display_name: displayName
+          });
 
           if(pErr){
             showMsg(pErr.message, "err");
@@ -527,7 +469,7 @@
           }
         }
 
-        showMsg("Registered. If email confirmation is enabled in Supabase, confirm email first, then login.");
+        showMsg("Registered. Login now.");
         setAuthMode("login");
         return;
       }
@@ -535,7 +477,6 @@
       const { error } = await sb.auth.signInWithPassword({ email, password });
       if(error){
         showMsg(error.message, "err");
-        return;
       }
     }
 
@@ -601,7 +542,7 @@
     async function loadProjects(){
       const { data, error } = await sb
         .from("projects")
-        .select("*")
+        .select("id, title, description, website_url, created_at, updated_at")
         .order("updated_at", { ascending: false });
 
       if(error){
@@ -616,24 +557,20 @@
 
     function updateStats(){
       document.getElementById("statTotal").textContent = projects.length;
-      document.getElementById("statLive").textContent = projects.filter(p => p.status === "live").length;
-      document.getElementById("statDraft").textContent = projects.filter(p => p.status === "draft").length;
+      document.getElementById("statLive").textContent = projects.filter(p => (p.website_url || "").trim() !== "").length;
+      document.getElementById("statDraft").textContent = projects.filter(p => (p.website_url || "").trim() === "").length;
     }
 
     function renderProjects(){
       const q = document.getElementById("searchInput").value.trim().toLowerCase();
-      const status = document.getElementById("statusFilter").value;
       let filtered = [...projects];
 
       if(q){
         filtered = filtered.filter(p =>
           (p.title || "").toLowerCase().includes(q) ||
-          (p.description || "").toLowerCase().includes(q)
+          (p.description || "").toLowerCase().includes(q) ||
+          (p.website_url || "").toLowerCase().includes(q)
         );
-      }
-
-      if(status !== "all"){
-        filtered = filtered.filter(p => p.status === status);
       }
 
       const wrap = document.getElementById("projectsWrap");
@@ -646,15 +583,11 @@
       wrap.innerHTML = `<div class="projects-grid">${
         filtered.map(project => `
           <div class="card">
-            <div class="thumb" style="${project.thumbnail_url ? `background-image:linear-gradient(135deg,rgba(79,70,229,.18),rgba(34,211,238,.15)),url('${escapeAttr(project.thumbnail_url)}');` : ''}">
-              ${project.thumbnail_url ? '' : escapeHtml(getInitials(project.title))}
-            </div>
+            <div class="thumb">${escapeHtml(getInitials(project.title))}</div>
             <div class="card-body">
-              <div class="title-row">
-                <h3 class="card-title">${escapeHtml(project.title)}</h3>
-                <span class="badge ${escapeHtml(project.status)}">${escapeHtml(project.status || "draft")}</span>
-              </div>
+              <h3 class="card-title">${escapeHtml(project.title)}</h3>
               <div class="desc">${escapeHtml(project.description || "No description")}</div>
+              <div class="meta">URL: ${escapeHtml(project.website_url || "-")}</div>
               <div class="meta">Updated: ${formatDate(project.updated_at)}</div>
               <div class="card-actions">
                 <button class="mini-btn" onclick="openProjectModal('${project.id}')">Edit</button>
@@ -694,33 +627,18 @@
         .replaceAll("'","&#039;");
     }
 
-    function escapeAttr(str=""){
-      return String(str).replaceAll('"',"&quot;");
-    }
-
     function escapeJs(str=""){
-      return String(str).replaceAll("\\","\\\\").replaceAll("'","\\'");
-    }
-
-    function slugify(text){
-      return text.toLowerCase().trim()
-        .replace(/[^a-z0-9\s-]/g, "")
-        .replace(/\s+/g, "-")
-        .replace(/-+/g, "-");
+      return String(str)
+        .replaceAll("\\","\\\\")
+        .replaceAll("'","\\'");
     }
 
     function fillProjectForm(project=null){
       editingProjectId = project?.id || null;
       document.getElementById("modalTitle").textContent = project ? "Edit Project" : "New Project";
       document.getElementById("projectTitle").value = project?.title || "";
-      document.getElementById("projectSlug").value = project?.slug || "";
       document.getElementById("projectDescription").value = project?.description || "";
       document.getElementById("projectWebsiteUrl").value = project?.website_url || "";
-      document.getElementById("projectThumbUrl").value = project?.thumbnail_url || "";
-      document.getElementById("projectStatus").value = project?.status || "draft";
-      document.getElementById("projectHtml").value = project?.html_code || "";
-      document.getElementById("projectCss").value = project?.css_code || "";
-      document.getElementById("projectJs").value = project?.js_code || "";
     }
 
     window.openProjectModal = function(projectId=null){
@@ -738,35 +656,21 @@
     document.getElementById("newProjectBtnTop").onclick = () => openProjectModal();
     document.getElementById("newProjectBtnSide").onclick = () => openProjectModal();
 
-    document.getElementById("projectTitle").addEventListener("input", (e) => {
-      const slugEl = document.getElementById("projectSlug");
-      if(!slugEl.dataset.edited || slugEl.value.trim() === ""){
-        slugEl.value = slugify(e.target.value);
-      }
-    });
-
-    document.getElementById("projectSlug").addEventListener("input", (e) => {
-      e.target.dataset.edited = "1";
-    });
-
     document.getElementById("saveProjectBtn").onclick = async () => {
       const title = document.getElementById("projectTitle").value.trim();
+      const description = document.getElementById("projectDescription").value.trim();
+      const website_url = document.getElementById("projectWebsiteUrl").value.trim();
+
       if(!title){
-        alert("Project title required.");
+        alert("Project name required.");
         return;
       }
 
       const payload = {
         user_id: currentUser.id,
         title,
-        slug: document.getElementById("projectSlug").value.trim() || slugify(title),
-        description: document.getElementById("projectDescription").value.trim(),
-        website_url: document.getElementById("projectWebsiteUrl").value.trim(),
-        thumbnail_url: document.getElementById("projectThumbUrl").value.trim(),
-        status: document.getElementById("projectStatus").value,
-        html_code: document.getElementById("projectHtml").value,
-        css_code: document.getElementById("projectCss").value,
-        js_code: document.getElementById("projectJs").value
+        description,
+        website_url
       };
 
       let res;
@@ -801,8 +705,6 @@
 
     document.getElementById("refreshBtn").onclick = loadProjects;
     document.getElementById("searchInput").addEventListener("input", renderProjects);
-    document.getElementById("statusFilter").addEventListener("change", renderProjects);
-
     document.getElementById("menuBtn").onclick = () => sidebar.classList.toggle("open");
 
     window.addEventListener("click", (e) => {
